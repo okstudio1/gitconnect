@@ -1,7 +1,30 @@
 node_modules/
-dist/
-.vite/
 .env
 .env.local
-.netlify/
 *.log
+.DS_Store
+dist/
+build/
+.vscode/
+.idea/
+*.swp
+*.swo
+*.exe
+*.bin
+ffmpeg-*/
+AutoHotkey_*/
+sox-*/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# PyInstaller
+*.spec
+
+# Vite
+.vite/
