@@ -22,7 +22,7 @@ export const handler: Handler = async (event) => {
   // GitHub Apps use the same OAuth flow but with different scopes/permissions
   if (event.httpMethod === 'GET' && path === '/login') {
     const state = Math.random().toString(36).substring(7)
-    const redirectUri = `${process.env.URL || 'http://localhost:8888'}/api/github-auth/callback`
+    const redirectUri = `${process.env.SITE_URL || 'http://localhost:8888'}/api/github-auth/callback`
     
     // GitHub App OAuth flow - user authorizes the app
     const authUrl = `https://github.com/login/oauth/authorize?` +
