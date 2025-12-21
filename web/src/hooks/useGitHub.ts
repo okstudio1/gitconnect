@@ -23,6 +23,10 @@ interface UseGitHubOptions {
   onError: (error: string) => void
 }
 
+// Cache for file listings to avoid repeated API calls
+const fileCache = new Map<string, { data: RepoFile[]; timestamp: number }>()
+const CACHE_TTL = 60000 // 1 minute cache
+
 export function useGitHub({ onError }: UseGitHubOptions) {
   const [isLoading, setIsLoading] = useState(false)
   const [currentRepo, setCurrentRepo] = useState<{ owner: string; repo: string } | null>(null)
@@ -159,16 +163,32 @@ export function useGitHub({ onError }: UseGitHubOptions) {
 
   const listFiles = useCallback(async (path: string = ''): Promise<RepoFile[]> => {
     if (!currentRepo) return []
+    
+    // Check cache first
+    const cacheKey = `${currentRepo.owner}/${currentRepo.repo}/${path}`
+    const cached = fileCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data
+    }
+    
     setIsLoading(true)
     try {
       const contents = await fetchApi(`/repos/${currentRepo.owner}/${currentRepo.repo}/contents/${path}`)
       if (Array.isArray(contents)) {
-        return contents.map((item: any) => ({
+        const files: RepoFile[] = contents.map((item: any) => ({
           name: item.name,
           path: item.path,
-          type: item.type === 'dir' ? 'dir' : 'file',
+          type: (item.type === 'dir' ? 'dir' : 'file') as 'file' | 'dir',
           sha: item.sha
-        }))
+        })).sort((a, b) => {
+          // Sort: directories first, then files, alphabetically
+          if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
+          return a.name.localeCompare(b.name)
+        })
+        
+        // Cache the result
+        fileCache.set(cacheKey, { data: files, timestamp: Date.now() })
+        return files
       }
       return []
     } catch (error) {

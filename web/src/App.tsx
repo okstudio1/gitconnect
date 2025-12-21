@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import Editor from '@monaco-editor/react'
-import { Mic, MicOff, Play, Save, Loader2, Check, X, Bot, Type, LogIn } from 'lucide-react'
+import { Mic, MicOff, Play, Save, Loader2, Check, X, Bot, Type, LogIn, Eye, Code } from 'lucide-react'
 import { useDeepgram } from './hooks/useDeepgram'
 import { useClaude } from './hooks/useClaude'
 import { useGitHub } from './hooks/useGitHub'
@@ -10,6 +10,7 @@ import { FileBrowserPanel } from './components/FileBrowserPanel'
 import { VoiceControlPanel } from './components/VoiceControlPanel'
 import { DeviceFlowLogin } from './components/DeviceFlowLogin'
 import { UserSettings } from './components/UserSettings'
+import { MarkdownPreview } from './components/MarkdownPreview'
 
 function App() {
   const [code, setCode] = useState(`// Welcome to MacroVox Mobile
@@ -32,6 +33,7 @@ app.listen(3000);
   const [fileBrowserCollapsed, setFileBrowserCollapsed] = useState(false)
   const [currentFile, setCurrentFile] = useState<{ path: string; sha: string | null }>({ path: 'untitled.ts', sha: null })
   const [isSaving, setIsSaving] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const editorRef = useRef<any>(null)
   const cursorLineRef = useRef(1)
 
@@ -327,31 +329,55 @@ app.listen(3000);
         </div>
       </header>
 
-      {/* Editor */}
-      <div className="flex-1 min-h-0">
-        <Editor
-          height="100%"
-          language={getLanguageFromPath(currentFile.path)}
-          theme="vs-dark"
-          value={code}
-          onChange={(value) => setCode(value || '')}
-          onMount={handleEditorMount}
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            wordWrap: 'on',
-            automaticLayout: true,
-            padding: { top: 12 },
-            scrollbar: {
-              vertical: 'auto',
-              horizontal: 'auto',
-              verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8
-            }
-          }}
-        />
+      {/* Editor with Preview Toggle for Markdown */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        {currentFile.path.endsWith('.md') && (
+          <div className="flex items-center gap-1 px-2 py-1 bg-slate-800 border-b border-slate-700">
+            <button
+              onClick={() => setShowPreview(false)}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${!showPreview ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+            >
+              <Code size={14} />
+              Edit
+            </button>
+            <button
+              onClick={() => setShowPreview(true)}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${showPreview ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+            >
+              <Eye size={14} />
+              Preview
+            </button>
+          </div>
+        )}
+        {showPreview && currentFile.path.endsWith('.md') ? (
+          <div className="flex-1 overflow-auto p-4 bg-slate-900">
+            <MarkdownPreview content={code} />
+          </div>
+        ) : (
+          <Editor
+            height="100%"
+            language={getLanguageFromPath(currentFile.path)}
+            theme="vs-dark"
+            value={code}
+            onChange={(value) => setCode(value || '')}
+            onMount={handleEditorMount}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              lineNumbers: 'on',
+              scrollBeyondLastLine: false,
+              wordWrap: 'on',
+              automaticLayout: true,
+              padding: { top: 12 },
+              scrollbar: {
+                vertical: 'auto',
+                horizontal: 'auto',
+                verticalScrollbarSize: 8,
+                horizontalScrollbarSize: 8
+              }
+            }}
+          />
+        )}
       </div>
 
       {/* Transcript / Pending Edit Area */}
