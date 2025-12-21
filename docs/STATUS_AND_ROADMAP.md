@@ -1,9 +1,10 @@
 # GitConnect - Project Status & Roadmap
 
-**Date**: December 20, 2024  
+**Last Updated**: December 20, 2024  
 **Domain**: gitconnect.pro  
 **Repository**: https://github.com/okstudio1/gitconnect  
-**Upstream (Open Source)**: https://github.com/owenpkent/MacroVox
+**Upstream (Open Source)**: https://github.com/owenpkent/MacroVox  
+**Live Site**: https://gitconnect.pro
 
 ---
 
@@ -37,14 +38,26 @@ A **voice-powered GitHub editor** that lets you browse, edit, and commit code to
 | GitHub App creation | ✅ Done | Credentials saved securely |
 | Domain configuration | ✅ Done | DNS connected to Netlify (propagating) |
 
-### 🔄 In Progress
+### 🔄 In Progress / Next Up
 
-| Item | Status | Blocker |
-|------|--------|---------|
-| Netlify deployment | ✅ Done | Site live, testing OAuth |
-| Subscription system | Planning | See SUBSCRIPTION_ARCHITECTURE.md |
-| Stripe integration | Pending | Waiting on subscription architecture |
-| API proxy functions | Pending | Waiting on Stripe integration |
+| Item | Status | Notes |
+|------|--------|-------|
+| Netlify deployment | ✅ Done | Site live at gitconnect.pro |
+| User settings panel | ✅ Done | Profile, API keys, repo access link |
+| Generate logo | 🎨 Pending | Need branding assets |
+| Supabase setup | 📋 Pending | Database for user/subscription storage |
+| Stripe integration | 📋 Pending | Subscription billing |
+| API proxy functions | 📋 Pending | Deepgram + Claude proxies |
+| Subscription UI | 📋 Pending | Checkout, upgrade, usage display |
+
+### 📚 Documentation Created
+
+| Document | Purpose |
+|----------|---------|
+| `GITHUB_APP_SETUP.md` | Step-by-step GitHub App creation guide |
+| `NETLIFY_DEPLOYMENT.md` | Netlify deployment and configuration |
+| `API_KEY_SECURITY.md` | API key storage options and security |
+| `SUBSCRIPTION_ARCHITECTURE.md` | Full subscription system design |
 
 ---
 
