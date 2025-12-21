@@ -234,6 +234,7 @@ export const handler: Handler = async (event) => {
         }
       }
 
+      console.log('[DeviceFlow] Polling GitHub with device_code:', deviceCode)
       const response = await fetch('https://github.com/login/oauth/access_token', {
         method: 'POST',
         headers: {
@@ -248,6 +249,7 @@ export const handler: Handler = async (event) => {
       })
 
       const data = await response.json()
+      console.log('[DeviceFlow] GitHub response:', JSON.stringify(data))
 
       // Handle pending/slow_down/expired errors
       if (data.error) {

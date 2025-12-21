@@ -75,6 +75,7 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
 
   const pollForToken = async (deviceCode: string) => {
     try {
+      console.log('[DeviceFlow] Polling for token...')
       const response = await fetch('/api/github-auth/device/poll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,6 +83,7 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
       })
 
       const data = await response.json()
+      console.log('[DeviceFlow] Poll response:', data)
 
       if (data.error) {
         if (data.error === 'authorization_pending') {
@@ -112,6 +114,7 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
       }
 
       // Success!
+      console.log('[DeviceFlow] Success! Token received')
       if (pollingRef.current) clearInterval(pollingRef.current)
       if (timerRef.current) clearInterval(timerRef.current)
       setState('success')
