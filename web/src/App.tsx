@@ -241,31 +241,55 @@ app.listen(3000);
             onToggleCollapse={() => setFileBrowserCollapsed(!fileBrowserCollapsed)}
           />
 
-          {/* Center: Code Editor */}
-          <div className="flex-1 min-w-0">
-            <Editor
-              height="100%"
-              language={getLanguageFromPath(currentFile.path)}
-              theme="vs-dark"
-              value={code}
-              onChange={(value) => setCode(value || '')}
-              onMount={handleEditorMount}
-              options={{
-                minimap: { enabled: true },
-                fontSize: 14,
-                lineNumbers: 'on',
-                scrollBeyondLastLine: false,
-                wordWrap: 'on',
-                automaticLayout: true,
-                padding: { top: 12 },
-                scrollbar: {
-                  vertical: 'auto',
-                  horizontal: 'auto',
-                  verticalScrollbarSize: 10,
-                  horizontalScrollbarSize: 10
-                }
-              }}
-            />
+          {/* Center: Code Editor with Markdown Preview */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            {currentFile.path.endsWith('.md') && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-slate-800 border-b border-slate-700">
+                <button
+                  onClick={() => setShowPreview(false)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${!showPreview ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  <Code size={14} />
+                  Edit
+                </button>
+                <button
+                  onClick={() => setShowPreview(true)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${showPreview ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                >
+                  <Eye size={14} />
+                  Preview
+                </button>
+              </div>
+            )}
+            {showPreview && currentFile.path.endsWith('.md') ? (
+              <div className="flex-1 overflow-auto p-4 bg-slate-900">
+                <MarkdownPreview content={code} />
+              </div>
+            ) : (
+              <Editor
+                height="100%"
+                language={getLanguageFromPath(currentFile.path)}
+                theme="vs-dark"
+                value={code}
+                onChange={(value) => setCode(value || '')}
+                onMount={handleEditorMount}
+                options={{
+                  minimap: { enabled: true },
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  scrollBeyondLastLine: false,
+                  wordWrap: 'on',
+                  automaticLayout: true,
+                  padding: { top: 12 },
+                  scrollbar: {
+                    vertical: 'auto',
+                    horizontal: 'auto',
+                    verticalScrollbarSize: 10,
+                    horizontalScrollbarSize: 10
+                  }
+                }}
+              />
+            )}
           </div>
 
           {/* Right: Voice Control Panel */}
