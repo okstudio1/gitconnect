@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback } from 'react'
 import Editor from '@monaco-editor/react'
-import { Mic, MicOff, Play, Save, Loader2, Check, X, Bot, Type, LogIn, LogOut } from 'lucide-react'
+import { Mic, MicOff, Play, Save, Loader2, Check, X, Bot, Type, LogIn } from 'lucide-react'
 import { useDeepgram } from './hooks/useDeepgram'
 import { useClaude } from './hooks/useClaude'
 import { useGitHub } from './hooks/useGitHub'
 import { FileBrowser } from './components/FileBrowser'
+import { UserSettings } from './components/UserSettings'
 
 function App() {
   const [code, setCode] = useState(`// Welcome to MacroVox Mobile
@@ -184,16 +185,7 @@ app.listen(3000);
             </button>
           )}
           {isAuthenticated ? (
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-700 transition-colors"
-              title="Sign out"
-            >
-              {user?.avatar_url && (
-                <img src={user.avatar_url} alt="" className="w-6 h-6 rounded-full" />
-              )}
-              <LogOut size={18} className="text-slate-400" />
-            </button>
+            <UserSettings user={user} onLogout={logout} />
           ) : (
             <button
               onClick={login}

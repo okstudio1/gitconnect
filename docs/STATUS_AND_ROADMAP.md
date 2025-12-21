@@ -34,14 +34,17 @@ A **voice-powered GitHub editor** that lets you browse, edit, and commit code to
 | Netlify Functions for auth | ✅ Done | Token exchange, refresh support |
 | Commercial repo setup | ✅ Done | okstudio1/gitconnect on GitHub |
 | Full project migrated | ✅ Done | Designs, docs, proposals included |
+| GitHub App creation | ✅ Done | Credentials saved securely |
+| Domain configuration | ✅ Done | DNS connected to Netlify (propagating) |
 
 ### 🔄 In Progress
 
 | Item | Status | Blocker |
 |------|--------|---------|
-| GitHub App creation | Pending | Needs manual creation in GitHub UI |
-| Netlify deployment | Pending | Waiting on GitHub App credentials |
-| Domain configuration | Pending | Waiting on Netlify deployment |
+| Netlify deployment | ✅ Done | Site live, testing OAuth |
+| Subscription system | Planning | See SUBSCRIPTION_ARCHITECTURE.md |
+| Stripe integration | Pending | Waiting on subscription architecture |
+| API proxy functions | Pending | Waiting on Stripe integration |
 
 ---
 
