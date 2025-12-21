@@ -78,7 +78,7 @@ export function UserSettings({ user, onLogout }: UserSettingsProps) {
           {/* Menu Items */}
           <div className="py-1">
             <a
-              href="https://github.com/settings/installations"
+              href="https://github.com/apps/gitconnect/installations/select_target"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700 transition-colors text-slate-300"
