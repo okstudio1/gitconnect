@@ -243,6 +243,7 @@ export const handler: Handler = async (event) => {
         },
         body: JSON.stringify({
           client_id: GITHUB_APP_CLIENT_ID,
+          client_secret: GITHUB_APP_CLIENT_SECRET,
           device_code: deviceCode,
           grant_type: 'urn:ietf:params:oauth:grant-type:device_code'
         })
