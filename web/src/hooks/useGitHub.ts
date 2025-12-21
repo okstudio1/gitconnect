@@ -21,13 +21,14 @@ interface GitHubUser {
 
 interface UseGitHubOptions {
   onError: (error: string) => void
+  onLogout?: () => void
 }
 
 // Cache for file listings to avoid repeated API calls
 const fileCache = new Map<string, { data: RepoFile[]; timestamp: number }>()
 const CACHE_TTL = 60000 // 1 minute cache
 
-export function useGitHub({ onError }: UseGitHubOptions) {
+export function useGitHub({ onError, onLogout }: UseGitHubOptions) {
   const [isLoading, setIsLoading] = useState(false)
   const [currentRepo, setCurrentRepo] = useState<{ owner: string; repo: string } | null>(null)
   const [user, setUser] = useState<GitHubUser | null>(null)
@@ -115,7 +116,11 @@ export function useGitHub({ onError }: UseGitHubOptions) {
     setUser(null)
     setIsAuthenticated(false)
     setCurrentRepo(null)
-  }, [])
+    // Clear the file cache
+    fileCache.clear()
+    // Call the onLogout callback to let the app clear its state
+    if (onLogout) onLogout()
+  }, [onLogout])
 
   const getToken = useCallback(() => {
     return localStorage.getItem('github_token')

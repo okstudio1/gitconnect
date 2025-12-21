@@ -54,7 +54,20 @@ app.listen(3000);
     showDeviceFlow,
     handleDeviceFlowSuccess,
     handleDeviceFlowCancel
-  } = useGitHub({ onError: (err) => setError(err) })
+  } = useGitHub({ 
+    onError: (err) => setError(err),
+    onLogout: () => {
+      // Clear app state on logout
+      setCode(`// Welcome to GitConnect
+// Sign in to access your GitHub repositories
+`)
+      setCurrentFile({ path: 'untitled.ts', sha: null })
+      setTranscript('')
+      setPendingEdit(null)
+      setError(null)
+      setShowPreview(false)
+    }
+  })
 
   const handleCodeGenerated = useCallback((edit: { action: string; position?: { line: number }; code: string; explanation: string }) => {
     setPendingEdit({

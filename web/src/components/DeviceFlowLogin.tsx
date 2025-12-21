@@ -40,8 +40,10 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
 
   const startDeviceFlow = async () => {
     try {
+      console.log('[DeviceFlow] Starting device flow...')
       const response = await fetch('/api/github-auth/device', { method: 'POST' })
       const data = await response.json()
+      console.log('[DeviceFlow] Got device data:', data)
 
       if (data.error) {
         setErrorMessage(data.error)
@@ -49,13 +51,17 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
         return
       }
 
+      // Store device code for polling
+      const deviceCode = data.device_code
+      console.log('[DeviceFlow] Device code:', deviceCode)
+      
       setDeviceFlow(data)
       setTimeLeft(data.expires_in)
       setState('waiting')
 
       // Start countdown timer
       timerRef.current = window.setInterval(() => {
-        setTimeLeft(prev => {
+        setTimeLeft((prev: number) => {
           if (prev <= 1) {
             if (timerRef.current) clearInterval(timerRef.current)
             if (pollingRef.current) clearInterval(pollingRef.current)
@@ -69,8 +75,13 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
 
       // Start polling for authorization
       const pollInterval = (data.interval || 5) * 1000
+      console.log('[DeviceFlow] Starting polling every', pollInterval, 'ms')
+      
+      // Poll immediately once, then set up interval
+      pollForToken(deviceCode)
+      
       pollingRef.current = window.setInterval(() => {
-        pollForToken(data.device_code)
+        pollForToken(deviceCode)
       }, pollInterval)
 
     } catch (err) {
