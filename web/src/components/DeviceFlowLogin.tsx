@@ -24,11 +24,13 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
   const [timeLeft, setTimeLeft] = useState(0)
   const pollingRef = useRef<number | null>(null)
   const timerRef = useRef<number | null>(null)
+  const pollIntervalRef = useRef<number>(5000)
+  const deviceCodeRef = useRef<string>('')
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current)
+      if (pollingRef.current) clearTimeout(pollingRef.current)
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
@@ -74,15 +76,19 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
       }, 1000)
 
       // Start polling for authorization
-      const pollInterval = (data.interval || 5) * 1000
-      console.log('[DeviceFlow] Starting polling every', pollInterval, 'ms')
+      pollIntervalRef.current = (data.interval || 5) * 1000
+      deviceCodeRef.current = deviceCode
+      console.log('[DeviceFlow] Starting polling every', pollIntervalRef.current, 'ms')
       
-      // Poll immediately once, then set up interval
-      pollForToken(deviceCode)
+      // Use setTimeout instead of setInterval for dynamic interval adjustment
+      const schedulePoll = () => {
+        pollingRef.current = window.setTimeout(() => {
+          pollForToken(deviceCodeRef.current, schedulePoll)
+        }, pollIntervalRef.current)
+      }
       
-      pollingRef.current = window.setInterval(() => {
-        pollForToken(deviceCode)
-      }, pollInterval)
+      // Start polling after initial interval (don't poll immediately)
+      schedulePoll()
 
     } catch (err) {
       setErrorMessage('Failed to start authentication')
@@ -90,9 +96,9 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
     }
   }
 
-  const pollForToken = async (deviceCode: string) => {
+  const pollForToken = async (deviceCode: string, schedulePoll: () => void) => {
     try {
-      console.log('[DeviceFlow] Polling for token...')
+      console.log('[DeviceFlow] Polling for token... (interval:', pollIntervalRef.current, 'ms)')
       const response = await fetch('/api/github-auth/device/poll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,26 +111,30 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
       if (data.error) {
         if (data.error === 'authorization_pending') {
           // Still waiting - continue polling
+          schedulePoll()
           return
         }
         if (data.error === 'slow_down') {
-          // Need to slow down - handled by interval already
+          // Increase interval by 5 seconds as per GitHub spec
+          pollIntervalRef.current += 5000
+          console.log('[DeviceFlow] Slowing down, new interval:', pollIntervalRef.current, 'ms')
+          schedulePoll()
           return
         }
         if (data.error === 'expired_token') {
-          if (pollingRef.current) clearInterval(pollingRef.current)
+          if (pollingRef.current) clearTimeout(pollingRef.current)
           setErrorMessage('Code expired. Please try again.')
           setState('error')
           return
         }
         if (data.error === 'access_denied') {
-          if (pollingRef.current) clearInterval(pollingRef.current)
+          if (pollingRef.current) clearTimeout(pollingRef.current)
           setErrorMessage('Authorization denied')
           setState('error')
           return
         }
         // Unknown error
-        if (pollingRef.current) clearInterval(pollingRef.current)
+        if (pollingRef.current) clearTimeout(pollingRef.current)
         setErrorMessage(data.error_description || data.error)
         setState('error')
         return
@@ -132,7 +142,7 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
 
       // Success!
       console.log('[DeviceFlow] Success! Token received')
-      if (pollingRef.current) clearInterval(pollingRef.current)
+      if (pollingRef.current) clearTimeout(pollingRef.current)
       if (timerRef.current) clearInterval(timerRef.current)
       setState('success')
       
@@ -143,6 +153,7 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
     } catch (err) {
       // Network error - continue polling
       console.error('Poll error:', err)
+      schedulePoll()
     }
   }
 
