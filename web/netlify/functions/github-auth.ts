@@ -174,6 +174,113 @@ export const handler: Handler = async (event) => {
     }
   }
 
+  // POST /api/github-auth/device - Start Device Flow (get user code)
+  if (event.httpMethod === 'POST' && path === '/device') {
+    try {
+      const response = await fetch('https://github.com/login/device/code', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          client_id: GITHUB_APP_CLIENT_ID
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.error) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: data.error_description || data.error })
+        }
+      }
+
+      // Returns: device_code, user_code, verification_uri, expires_in, interval
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          device_code: data.device_code,
+          user_code: data.user_code,
+          verification_uri: data.verification_uri,
+          expires_in: data.expires_in,
+          interval: data.interval
+        })
+      }
+    } catch (err) {
+      console.error('Device flow init error:', err)
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Failed to start device flow' })
+      }
+    }
+  }
+
+  // POST /api/github-auth/device/poll - Poll for token after user authorizes
+  if (event.httpMethod === 'POST' && path === '/device/poll') {
+    try {
+      const body = JSON.parse(event.body || '{}')
+      const deviceCode = body.device_code
+
+      if (!deviceCode) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Missing device_code' })
+        }
+      }
+
+      const response = await fetch('https://github.com/login/oauth/access_token', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          client_id: GITHUB_APP_CLIENT_ID,
+          device_code: deviceCode,
+          grant_type: 'urn:ietf:params:oauth:grant-type:device_code'
+        })
+      })
+
+      const data = await response.json()
+
+      // Handle pending/slow_down/expired errors
+      if (data.error) {
+        return {
+          statusCode: 200, // Return 200 so client can check error type
+          headers,
+          body: JSON.stringify({ 
+            error: data.error,
+            error_description: data.error_description
+          })
+        }
+      }
+
+      // Success - return token
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          access_token: data.access_token,
+          token_type: data.token_type,
+          scope: data.scope
+        })
+      }
+    } catch (err) {
+      console.error('Device flow poll error:', err)
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Failed to poll device flow' })
+      }
+    }
+  }
+
   return {
     statusCode: 404,
     headers,

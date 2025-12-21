@@ -4,7 +4,11 @@ import { Mic, MicOff, Play, Save, Loader2, Check, X, Bot, Type, LogIn } from 'lu
 import { useDeepgram } from './hooks/useDeepgram'
 import { useClaude } from './hooks/useClaude'
 import { useGitHub } from './hooks/useGitHub'
+import { useOrientation } from './hooks/useOrientation'
 import { FileBrowser } from './components/FileBrowser'
+import { FileBrowserPanel } from './components/FileBrowserPanel'
+import { VoiceControlPanel } from './components/VoiceControlPanel'
+import { DeviceFlowLogin } from './components/DeviceFlowLogin'
 import { UserSettings } from './components/UserSettings'
 
 function App() {
@@ -25,10 +29,13 @@ app.listen(3000);
   const [error, setError] = useState<string | null>(null)
   const [mode, setMode] = useState<'agent' | 'transcribe'>('agent')
   const [fileBrowserOpen, setFileBrowserOpen] = useState(false)
+  const [fileBrowserCollapsed, setFileBrowserCollapsed] = useState(false)
   const [currentFile, setCurrentFile] = useState<{ path: string; sha: string | null }>({ path: 'untitled.ts', sha: null })
   const [isSaving, setIsSaving] = useState(false)
   const editorRef = useRef<any>(null)
   const cursorLineRef = useRef(1)
+
+  const { isLandscape } = useOrientation()
 
   const { 
     isLoading: isGitHubLoading,
@@ -41,7 +48,10 @@ app.listen(3000);
     selectRepo, 
     listFiles, 
     loadFile, 
-    saveFile 
+    saveFile,
+    showDeviceFlow,
+    handleDeviceFlowSuccess,
+    handleDeviceFlowCancel
   } = useGitHub({ onError: (err) => setError(err) })
 
   const handleCodeGenerated = useCallback((edit: { action: string; position?: { line: number }; code: string; explanation: string }) => {
@@ -154,6 +164,124 @@ app.listen(3000);
     }
   }
 
+  // Landscape Layout: [FileBrowser | Editor | VoiceControls]
+  if (isLandscape) {
+    return (
+      <div className="h-full flex flex-col bg-slate-900">
+        {/* Header */}
+        <header className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-semibold text-white">GitConnect</span>
+            {currentRepo && (
+              <span className="text-sm text-slate-400">
+                {currentRepo.owner}/{currentRepo.repo}
+                <span className="text-slate-600 mx-1">/</span>
+                <span className="text-slate-300">{currentFile.path}</span>
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <button 
+                onClick={handleSave}
+                disabled={isSaving || isGitHubLoading || !currentRepo}
+                className="p-2 rounded-lg hover:bg-slate-700 active:bg-slate-600 transition-colors disabled:opacity-50"
+                title="Save to GitHub"
+              >
+                {isSaving ? (
+                  <Loader2 size={20} className="text-slate-400 animate-spin" />
+                ) : (
+                  <Save size={20} className="text-slate-400" />
+                )}
+              </button>
+            )}
+            {isAuthenticated ? (
+              <UserSettings user={user} onLogout={logout} />
+            ) : (
+              <button
+                onClick={login}
+                disabled={isGitHubLoading}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-sm text-white"
+              >
+                <LogIn size={16} />
+                <span>Sign in</span>
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* Main Content: 3-column layout */}
+        <div className="flex-1 flex min-h-0">
+          {/* Left: File Browser Panel */}
+          <FileBrowserPanel
+            currentRepo={currentRepo}
+            isLoading={isGitHubLoading}
+            isAuthenticated={isAuthenticated}
+            onLogin={login}
+            onSelectRepo={selectRepo}
+            onSelectFile={handleSelectFile}
+            listRepos={listRepos}
+            listFiles={listFiles}
+            collapsed={fileBrowserCollapsed}
+            onToggleCollapse={() => setFileBrowserCollapsed(!fileBrowserCollapsed)}
+          />
+
+          {/* Center: Code Editor */}
+          <div className="flex-1 min-w-0">
+            <Editor
+              height="100%"
+              language={getLanguageFromPath(currentFile.path)}
+              theme="vs-dark"
+              value={code}
+              onChange={(value) => setCode(value || '')}
+              onMount={handleEditorMount}
+              options={{
+                minimap: { enabled: true },
+                fontSize: 14,
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                automaticLayout: true,
+                padding: { top: 12 },
+                scrollbar: {
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                  verticalScrollbarSize: 10,
+                  horizontalScrollbarSize: 10
+                }
+              }}
+            />
+          </div>
+
+          {/* Right: Voice Control Panel */}
+          <VoiceControlPanel
+            isListening={isListening}
+            isConnecting={isConnecting}
+            isProcessing={isProcessing}
+            mode={mode}
+            transcript={transcript}
+            pendingEdit={pendingEdit}
+            error={error}
+            onToggleMic={toggleMic}
+            onToggleMode={() => setMode(mode === 'agent' ? 'transcribe' : 'agent')}
+            onAcceptEdit={acceptEdit}
+            onRejectEdit={rejectEdit}
+            onClearError={() => setError(null)}
+          />
+        </div>
+
+        {/* Device Flow Login Modal */}
+        {showDeviceFlow && (
+          <DeviceFlowLogin
+            onSuccess={handleDeviceFlowSuccess}
+            onCancel={handleDeviceFlowCancel}
+          />
+        )}
+      </div>
+    )
+  }
+
+  // Portrait Layout: Original mobile-first layout
   return (
     <div className="h-full flex flex-col bg-slate-900">
       {/* Header */}
@@ -162,7 +290,7 @@ app.listen(3000);
           onClick={() => setFileBrowserOpen(true)}
           className="flex items-center gap-2 hover:bg-slate-700 px-2 py-1 rounded transition-colors"
         >
-          <span className="text-lg font-semibold text-white">MacroVox</span>
+          <span className="text-lg font-semibold text-white">GitConnect</span>
           {currentRepo && (
             <span className="text-xs text-slate-400 truncate max-w-[120px]">
               {currentRepo.repo}/{currentFile.path.split('/').pop()}
@@ -330,7 +458,8 @@ app.listen(3000);
           <span className="text-xs text-slate-500">Run</span>
         </button>
       </div>
-    {/* File Browser Modal */}
+
+      {/* File Browser Modal (Portrait only) */}
       <FileBrowser
         isOpen={fileBrowserOpen}
         onClose={() => setFileBrowserOpen(false)}
@@ -343,6 +472,14 @@ app.listen(3000);
         listRepos={listRepos}
         listFiles={listFiles}
       />
+
+      {/* Device Flow Login Modal */}
+      {showDeviceFlow && (
+        <DeviceFlowLogin
+          onSuccess={handleDeviceFlowSuccess}
+          onCancel={handleDeviceFlowCancel}
+        />
+      )}
     </div>
   )
 }

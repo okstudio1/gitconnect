@@ -74,7 +74,15 @@ export function useGitHub({ onError }: UseGitHubOptions) {
     }
   }
 
+  const [showDeviceFlow, setShowDeviceFlow] = useState(false)
+
   const login = useCallback(async () => {
+    // Use Device Flow for better mobile experience
+    setShowDeviceFlow(true)
+  }, [])
+
+  const loginWithRedirect = useCallback(async () => {
+    // Fallback: traditional OAuth redirect flow
     setIsLoading(true)
     try {
       const response = await fetch('/api/github-auth/login')
@@ -88,6 +96,15 @@ export function useGitHub({ onError }: UseGitHubOptions) {
       setIsLoading(false)
     }
   }, [onError])
+
+  const handleDeviceFlowSuccess = useCallback((token: string) => {
+    setShowDeviceFlow(false)
+    fetchUser(token)
+  }, [])
+
+  const handleDeviceFlowCancel = useCallback(() => {
+    setShowDeviceFlow(false)
+  }, [])
 
   const logout = useCallback(() => {
     localStorage.removeItem('github_token')
@@ -213,11 +230,16 @@ export function useGitHub({ onError }: UseGitHubOptions) {
     user,
     currentRepo,
     login,
+    loginWithRedirect,
     logout,
     listRepos,
     selectRepo,
     listFiles,
     loadFile,
-    saveFile
+    saveFile,
+    // Device Flow
+    showDeviceFlow,
+    handleDeviceFlowSuccess,
+    handleDeviceFlowCancel
   }
 }
