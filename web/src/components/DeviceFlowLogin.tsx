@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Github, ExternalLink, Loader2, CheckCircle, XCircle, Copy, Check } from 'lucide-react'
+import { Github, ExternalLink, Loader2, CheckCircle, XCircle, Copy, Check, Settings } from 'lucide-react'
+
+const GITHUB_APP_INSTALL_URL = 'https://github.com/apps/gitconnectpro/installations/new'
 
 interface DeviceFlowLoginProps {
   onSuccess: (token: string) => void
@@ -15,7 +17,7 @@ interface DeviceFlowState {
 }
 
 export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
-  const [state, setState] = useState<'init' | 'waiting' | 'success' | 'error'>('init')
+  const [state, setState] = useState<'install' | 'init' | 'waiting' | 'success' | 'error'>('install')
   const [deviceFlow, setDeviceFlow] = useState<DeviceFlowState | null>(null)
   const [copied, setCopied] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -23,14 +25,18 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
   const pollingRef = useRef<number | null>(null)
   const timerRef = useRef<number | null>(null)
 
-  // Start device flow on mount
+  // Cleanup on unmount
   useEffect(() => {
-    startDeviceFlow()
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current)
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
+
+  const proceedToDeviceFlow = () => {
+    setState('init')
+    startDeviceFlow()
+  }
 
   const startDeviceFlow = async () => {
     try {
@@ -167,6 +173,41 @@ export function DeviceFlowLogin({ onSuccess, onCancel }: DeviceFlowLoginProps) {
 
         {/* Content */}
         <div className="px-6 py-6">
+          {state === 'install' && (
+            <div className="space-y-5">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700 flex items-center justify-center">
+                  <Settings size={32} className="text-blue-400" />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">First, install GitConnectPro</h3>
+                <p className="text-sm text-slate-400">
+                  Choose which repositories GitConnect can access. You can change this anytime.
+                </p>
+              </div>
+
+              <a
+                href={GITHUB_APP_INSTALL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-white font-medium"
+              >
+                <Github size={18} />
+                <span>Install on GitHub</span>
+                <ExternalLink size={14} />
+              </a>
+
+              <div className="text-center">
+                <p className="text-xs text-slate-500 mb-3">Already installed?</p>
+                <button
+                  onClick={proceedToDeviceFlow}
+                  className="text-sm text-blue-400 hover:text-blue-300"
+                >
+                  Continue to sign in →
+                </button>
+              </div>
+            </div>
+          )}
+
           {state === 'init' && (
             <div className="flex flex-col items-center py-8">
               <Loader2 size={32} className="text-blue-400 animate-spin" />
