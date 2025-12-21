@@ -26,7 +26,7 @@ Or: GitHub → Organization Settings → Developer settings → GitHub Apps → 
 
 | Field | Value |
 |-------|-------|
-| **GitHub App name** | `GitConnect` |
+| **GitHub App name** | `GitConnectPro` |
 | **Description** | See below |
 | **Homepage URL** | `https://gitconnect.pro` |
 
@@ -53,7 +53,7 @@ GitConnect only requests access to repository contents you explicitly authorize.
 | **Callback URL** | `https://gitconnect.pro/api/github-auth/callback` |
 | **Expire user authorization tokens** | ✅ Checked |
 | **Request user authorization (OAuth) during installation** | ✅ Checked |
-| **Enable Device Flow** | ❌ Unchecked |
+| **Enable Device Flow** | ✅ Checked |
 
 ---
 
@@ -166,10 +166,11 @@ http://localhost:8888/api/github-auth/callback
 
 After setup, verify:
 
-- [ ] App appears at: https://github.com/organizations/okstudio1/settings/apps
+- [ ] App appears at: https://github.com/organizations/okstudio1/settings/apps/gitconnectpro
 - [ ] Client ID and Secret are saved securely
 - [ ] Netlify environment variables are set
-- [ ] OAuth flow works: User can sign in and authorize repos
+- [ ] Device Flow works: User can sign in via device code
+- [ ] App installation works: User can select repos during installation
 - [ ] File read/write works: Can load and save files to GitHub
 
 ---
@@ -213,7 +214,7 @@ After setup, verify:
 
 To modify settings after creation:
 
-1. Go to: https://github.com/organizations/okstudio1/settings/apps/gitconnect
+1. Go to: https://github.com/organizations/okstudio1/settings/apps/gitconnectpro
 2. Make changes
 3. Click "Save changes"
 
