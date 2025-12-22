@@ -227,7 +227,7 @@ export function useGitHub({ onError, onLogout }: UseGitHubOptions) {
     path: string, 
     content: string, 
     sha: string | null,
-    message: string = 'Update via MacroVox Mobile'
+    message: string = 'Update via GitConnect'
   ): Promise<boolean> => {
     if (!currentRepo) return false
     setIsLoading(true)

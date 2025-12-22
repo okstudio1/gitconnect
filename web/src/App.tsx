@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import Editor from '@monaco-editor/react'
-import { Mic, MicOff, Play, Save, Loader2, Check, X, Bot, Type, LogIn, Eye, Code } from 'lucide-react'
+import { Mic, MicOff, Play, Loader2, Check, X, Bot, Type, LogIn, Eye, Code, GitCommit, Save } from 'lucide-react'
 import { useDeepgram } from './hooks/useDeepgram'
 import { useClaude } from './hooks/useClaude'
 import { useGitHub } from './hooks/useGitHub'
@@ -24,6 +24,9 @@ function App() {
   const [currentFile, setCurrentFile] = useState<{ path: string; sha: string | null }>({ path: 'untitled.ts', sha: null })
   const [isSaving, setIsSaving] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [commitMessage, setCommitMessage] = useState('')
+  const [hasChanges, setHasChanges] = useState(false)
+  const [originalCode, setOriginalCode] = useState('')
   const editorRef = useRef<any>(null)
   const cursorLineRef = useRef(1)
 
@@ -132,9 +135,17 @@ function App() {
     const file = await loadFile(path)
     if (file) {
       setCode(file.content)
+      setOriginalCode(file.content)
       setCurrentFile({ path: file.path, sha: file.sha })
       setShowWelcome(false)
+      setHasChanges(false)
     }
+  }
+
+  const handleCodeChange = (value: string | undefined) => {
+    const newCode = value || ''
+    setCode(newCode)
+    setHasChanges(newCode !== originalCode)
   }
 
   const handleSave = async () => {
@@ -143,10 +154,16 @@ function App() {
       return
     }
     setIsSaving(true)
-    const success = await saveFile(currentFile.path, code, currentFile.sha)
+    const message = commitMessage.trim() || `Update ${currentFile.path}`
+    const success = await saveFile(currentFile.path, code, currentFile.sha, message)
     if (success) {
       const file = await loadFile(currentFile.path)
-      if (file) setCurrentFile({ path: file.path, sha: file.sha })
+      if (file) {
+        setCurrentFile({ path: file.path, sha: file.sha })
+        setOriginalCode(code)
+        setHasChanges(false)
+        setCommitMessage('')
+      }
     }
     setIsSaving(false)
   }
@@ -186,19 +203,35 @@ function App() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {isAuthenticated && (
-              <button 
-                onClick={handleSave}
-                disabled={isSaving || isGitHubLoading || !currentRepo}
-                className="p-2 rounded-lg hover:bg-slate-700 active:bg-slate-600 transition-colors disabled:opacity-50"
-                title="Save to GitHub"
-              >
-                {isSaving ? (
-                  <Loader2 size={20} className="text-slate-400 animate-spin" />
-                ) : (
-                  <Save size={20} className="text-slate-400" />
+            {isAuthenticated && currentRepo && (
+              <div className="flex items-center gap-2">
+                {hasChanges && (
+                  <span className="text-xs text-amber-400 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-amber-400 rounded-full" />
+                    Unsaved
+                  </span>
                 )}
-              </button>
+                <input
+                  type="text"
+                  placeholder="Commit message..."
+                  value={commitMessage}
+                  onChange={(e) => setCommitMessage(e.target.value)}
+                  className="px-2 py-1 text-sm bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 w-48 focus:outline-none focus:border-blue-500"
+                />
+                <button 
+                  onClick={handleSave}
+                  disabled={isSaving || isGitHubLoading || !hasChanges}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded text-sm text-white transition-colors disabled:opacity-50 disabled:hover:bg-green-600"
+                  title="Commit & Push"
+                >
+                  {isSaving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <GitCommit size={16} />
+                  )}
+                  <span>Commit</span>
+                </button>
+              </div>
             )}
             {isAuthenticated ? (
               <UserSettings user={user} onLogout={logout} />
@@ -269,7 +302,7 @@ function App() {
                 language={getLanguageFromPath(currentFile.path)}
                 theme="vs-dark"
                 value={code}
-                onChange={(value) => setCode(value || '')}
+                onChange={handleCodeChange}
                 onMount={handleEditorMount}
                 options={{
                   minimap: { enabled: true },
@@ -394,7 +427,7 @@ function App() {
             language={getLanguageFromPath(currentFile.path)}
             theme="vs-dark"
             value={code}
-            onChange={(value) => setCode(value || '')}
+            onChange={handleCodeChange}
             onMount={handleEditorMount}
             options={{
               minimap: { enabled: false },
