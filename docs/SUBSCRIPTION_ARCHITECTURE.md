@@ -129,6 +129,40 @@ You'll need a database to track:
 
 ---
 
+## Supabase Setup
+
+### 1. Create Project
+- Go to https://supabase.com and sign in
+- Click "New project"
+- **Organization**: OKStudio
+- **Project name**: `gitconnect.pro`
+- **Database password**: Generate strong password
+- **Region**: Americas (closest to users)
+- **Security options**:
+  - Data API + Connection String ✓
+  - Use public schema ✓
+  - Postgres (default) ✓
+
+### 2. Get API Keys
+- Go to **Project Settings** → **API**
+- Copy these values:
+  - **Project URL**: `https://ncoypwaaqigujoxidzon.supabase.co`
+  - **anon public key** (safe for client-side)
+  - **service_role key** (secret - server-side only)
+
+### 3. Add to Netlify Environment Variables
+- Go to Netlify → Site settings → Environment variables
+- Add:
+  - `SUPABASE_URL` = Your project URL
+  - `SUPABASE_ANON_KEY` = The anon/public key
+  - `SUPABASE_SERVICE_KEY` = The service_role key
+
+### 4. Create Database Schema
+- In Supabase, go to **SQL Editor** (left sidebar)
+- Run the SQL schema provided below (see Database Schema section)
+
+---
+
 ## Stripe Setup
 
 ### 1. Create Stripe Account
@@ -242,10 +276,15 @@ ALTER TABLE usage ENABLE ROW LEVEL SECURITY;
 
 ## Next Steps
 
-1. [ ] First, confirm GitHub OAuth is working (after SITE_URL fix)
-2. [ ] Set up Supabase project
-3. [ ] Create Stripe account and product
-4. [ ] Implement proxy functions
-5. [ ] Implement Stripe checkout flow
-6. [ ] Update frontend with subscription UI
-7. [ ] Test full flow end-to-end
+1. [x] Set up Supabase project (gitconnect.pro)
+2. [x] Get Supabase API keys
+3. [x] Add Supabase env vars to Netlify
+4. [x] Create database schema in Supabase (SQL Editor)
+5. [x] Create Stripe account and product
+6. [ ] Get Stripe API keys and add to Netlify
+7. [ ] Set up Stripe webhook
+8. [ ] Implement proxy functions (Deepgram, Claude)
+9. [ ] Implement Stripe checkout flow
+10. [ ] Implement subscription status check
+11. [ ] Update frontend with subscription UI
+12. [ ] Test full flow end-to-end
