@@ -13,18 +13,8 @@ import { UserSettings } from './components/UserSettings'
 import { MarkdownPreview } from './components/MarkdownPreview'
 
 function App() {
-  const [code, setCode] = useState(`// Welcome to MacroVox Mobile
-// Tap the mic and speak to generate code
-
-import express from 'express';
-const app = express();
-
-app.get('/', (req, res) => {
-  res.json({ message: 'Hello from MacroVox!' });
-});
-
-app.listen(3000);
-`)
+  const [code, setCode] = useState('')
+  const [showWelcome, setShowWelcome] = useState(true)
   const [transcript, setTranscript] = useState('')
   const [pendingEdit, setPendingEdit] = useState<{ code: string; explanation: string; line: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -58,14 +48,13 @@ app.listen(3000);
     onError: (err) => setError(err),
     onLogout: () => {
       // Clear app state on logout
-      setCode(`// Welcome to GitConnect
-// Sign in to access your GitHub repositories
-`)
+      setCode('')
       setCurrentFile({ path: 'untitled.ts', sha: null })
       setTranscript('')
       setPendingEdit(null)
       setError(null)
       setShowPreview(false)
+      setShowWelcome(true)
     }
   })
 
@@ -144,6 +133,7 @@ app.listen(3000);
     if (file) {
       setCode(file.content)
       setCurrentFile({ path: file.path, sha: file.sha })
+      setShowWelcome(false)
     }
   }
 
@@ -261,7 +251,15 @@ app.listen(3000);
                 </button>
               </div>
             )}
-            {showPreview && currentFile.path.endsWith('.md') ? (
+            {showWelcome ? (
+              <div className="flex-1 flex flex-col items-center justify-center bg-slate-900 gap-8">
+                <img src="/logo.png" alt="GitConnect" className="w-32 h-32 opacity-90" />
+                <div className="text-center">
+                  <h1 className="text-4xl font-bold text-white mb-2">Welcome to GitConnect</h1>
+                  <p className="text-slate-400 text-lg">Sign in to access your GitHub repositories and start coding</p>
+                </div>
+              </div>
+            ) : showPreview && currentFile.path.endsWith('.md') ? (
               <div className="flex-1 overflow-auto p-4 bg-slate-900">
                 <MarkdownPreview content={code} />
               </div>
