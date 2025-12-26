@@ -75,6 +75,9 @@ Generate the code modification as JSON.`
     try {
       let response: Response
 
+      // Get user's preferred model from localStorage
+      const selectedModel = localStorage.getItem('claude_model') || 'claude-sonnet-4-20250514'
+
       if (shouldUseProxy) {
         // Use proxy endpoint for Pro subscribers
         response = await fetch('/api/claude-proxy', {
@@ -84,7 +87,7 @@ Generate the code modification as JSON.`
             github_id: githubId,
             system: systemPrompt,
             messages: [{ role: 'user', content: userMessage }],
-            model: 'claude-sonnet-4-20250514',
+            model: selectedModel,
             max_tokens: 2048
           })
         })
@@ -99,7 +102,7 @@ Generate the code modification as JSON.`
             'anthropic-dangerous-direct-browser-access': 'true'
           },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
+            model: selectedModel,
             max_tokens: 2048,
             system: systemPrompt,
             messages: [{ role: 'user', content: userMessage }]

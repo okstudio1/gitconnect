@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import { LogOut, Github, Key, ExternalLink } from 'lucide-react'
+import { LogOut, Github, Key, ExternalLink, Bot } from 'lucide-react'
+
+export const CLAUDE_MODELS = [
+  { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', description: 'Balanced performance' },
+  { id: 'claude-opus-4-20250514', name: 'Claude Opus 4', description: 'Most capable' },
+  { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', description: 'Fastest & cheapest' },
+] as const
+
+export type ClaudeModelId = typeof CLAUDE_MODELS[number]['id']
 
 interface UserSettingsProps {
   user: { login: string; avatar_url: string; name: string | null } | null
@@ -11,11 +19,17 @@ export function UserSettings({ user, onLogout }: UserSettingsProps) {
   const [showApiKeys, setShowApiKeys] = useState(false)
   const [deepgramKey, setDeepgramKey] = useState('')
   const [anthropicKey, setAnthropicKey] = useState('')
+  const [claudeModel, setClaudeModel] = useState<ClaudeModelId>('claude-sonnet-4-20250514')
+  const [showModelSelector, setShowModelSelector] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setDeepgramKey(localStorage.getItem('deepgram_api_key') || '')
     setAnthropicKey(localStorage.getItem('anthropic_api_key') || '')
+    const savedModel = localStorage.getItem('claude_model') as ClaudeModelId | null
+    if (savedModel && CLAUDE_MODELS.some(m => m.id === savedModel)) {
+      setClaudeModel(savedModel)
+    }
   }, [])
 
   useEffect(() => {
@@ -98,6 +112,43 @@ export function UserSettings({ user, onLogout }: UserSettingsProps) {
                 {deepgramKey && anthropicKey ? '✓ Set' : 'Configure'}
               </span>
             </button>
+
+            <button
+              onClick={() => setShowModelSelector(!showModelSelector)}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700 transition-colors text-slate-300"
+            >
+              <Bot size={18} />
+              <span className="flex-1 text-left">Claude Model</span>
+              <span className="text-xs text-slate-500">
+                {CLAUDE_MODELS.find(m => m.id === claudeModel)?.name || 'Sonnet 4'}
+              </span>
+            </button>
+
+            {showModelSelector && (
+              <div className="px-4 py-3 bg-slate-900 border-y border-slate-700">
+                <div className="text-xs text-slate-400 mb-2">Select Claude Model for Agent Mode</div>
+                <div className="space-y-1">
+                  {CLAUDE_MODELS.map((model) => (
+                    <button
+                      key={model.id}
+                      onClick={() => {
+                        setClaudeModel(model.id)
+                        localStorage.setItem('claude_model', model.id)
+                        setShowModelSelector(false)
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded text-sm transition-colors ${
+                        claudeModel === model.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      }`}
+                    >
+                      <span>{model.name}</span>
+                      <span className="text-xs opacity-70">{model.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {showApiKeys && (
               <div className="px-4 py-3 bg-slate-900 border-y border-slate-700">
