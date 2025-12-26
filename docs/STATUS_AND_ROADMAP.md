@@ -1,129 +1,182 @@
-# GitConnect - Project Status & Roadmap
+# GitConnect — Status & Roadmap
 
 **Last Updated**: December 25, 2024  
-**Domain**: gitconnect.pro  
-**Repository**: https://github.com/okstudio1/gitconnect  
-**Upstream (Open Source)**: https://github.com/owenpkent/MacroVox  
-**Live Site**: https://gitconnect.pro
+**Live Site**: https://gitconnect.pro  
+**Repository**: https://github.com/okstudio1/gitconnect
 
 ---
 
-## What Is GitConnect?
+## Project Overview
 
-A **voice-powered GitHub editor** that lets you browse, edit, and commit code to GitHub repositories using voice commands and AI assistance — from any device with a browser.
+**GitConnect** is a voice-powered GitHub editor — browse, edit, and commit code using voice commands and AI assistance from any device with a browser.
 
-### Core Features (Implemented)
-- **Monaco Editor** - Full code editor in the browser
-- **Deepgram Integration** - Real-time voice-to-text transcription
-- **Claude AI Integration** - Voice → code generation with accept/reject flow
-- **GitHub Integration** - Browse repos, load files, save directly to GitHub
-- **Agent vs Dictation Mode** - AI interprets intent OR raw dictation
-- **Device Flow Auth** - Mobile-friendly GitHub login with code entry
-- **Responsive Layout** - Portrait (mobile) and landscape (desktop) modes
+**Core Features**:
+- Monaco code editor with syntax highlighting
+- Real-time voice transcription (Deepgram)
+- AI code generation (Claude) with accept/reject flow
+- GitHub file browsing, editing, and commits
+- Mobile-friendly with Device Flow authentication
+- Responsive portrait/landscape layouts
 
 ---
 
-## Current Status
+## Status Summary
 
-### ✅ Completed
+| Category | Status |
+|----------|--------|
+| **Core App** | ✅ Complete — Live at gitconnect.pro |
+| **GitHub Integration** | ✅ Complete — App installed, auth working |
+| **Subscription System** | 🔧 Code complete, needs configuration |
+| **Stripe Billing** | 📋 Account ready, needs product setup |
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Web app (React/Vite/Tailwind) | ✅ Done | In `web/` folder |
-| Deepgram voice transcription | ✅ Done | WebSocket streaming to nova-2 |
-| Claude code generation | ✅ Done | Direct API with accept/reject UI |
-| GitHub file read/write | ✅ Done | REST API integration |
-| GitHub App (GitConnectPro) | ✅ Done | Fine-grained permissions, Device Flow |
-| Netlify deployment | ✅ Done | Site live at gitconnect.pro |
-| Domain configuration | ✅ Done | DNS configured, HTTPS enabled |
-| User settings panel | ✅ Done | Profile, API keys, repo access link |
-| Logo | ✅ Done | Branding assets in place |
-| Supabase setup | ✅ Done | Database configured, env vars in Netlify |
-| Stripe account | ✅ Done | Account created, ready for product setup |
-| API proxy functions | ✅ Done | `deepgram-proxy.ts`, `claude-proxy.ts` |
-| Stripe functions | ✅ Done | `stripe.ts` - checkout, webhook, portal |
-| Subscription hooks | ✅ Done | `useSubscription.ts` for state management |
-| Subscription UI | ✅ Done | `SubscriptionBanner.tsx` component |
+---
 
-### 🔄 In Progress
+## ✅ What's Done
 
-| Item | Status | Notes |
-|------|--------|-------|
-| Wire up subscription to App | 🔧 In Progress | Integrating hooks into main app |
-| Run Supabase schema | 📋 Pending | Need to execute `SUPABASE_SCHEMA.sql` |
-| Add Stripe env vars | 📋 Pending | Price ID, webhook secret needed |
-| Add API keys for proxy | 📋 Pending | DEEPGRAM_API_KEY, ANTHROPIC_API_KEY |
-| End-to-end subscription test | 📋 Pending | Full checkout flow verification |
+### Infrastructure
+- [x] React/Vite/Tailwind web app deployed to Netlify
+- [x] GitHub App (GitConnectPro) with Device Flow
+- [x] Domain (gitconnect.pro) configured with HTTPS
+- [x] Supabase project created, env vars in Netlify
+- [x] Stripe account created
 
-### 📚 Documentation Created
+### Features
+- [x] Monaco editor with file loading/saving
+- [x] Deepgram voice transcription (WebSocket streaming)
+- [x] Claude AI code generation with accept/reject UI
+- [x] Agent mode (AI interprets) vs Dictation mode (raw text)
+- [x] GitHub file browser and repo selection
+- [x] User settings panel with profile and API key management
+- [x] Markdown preview with proper UTF-8 support
+- [x] Logo and branding
+
+### Subscription Code (Ready to Activate)
+- [x] `useSubscription` hook for subscription state
+- [x] `SubscriptionBanner` component (Upgrade/Pro badge)
+- [x] Deepgram proxy function (`deepgram-proxy.ts`)
+- [x] Claude proxy function (`claude-proxy.ts`)
+- [x] Stripe functions (`stripe.ts` — checkout, webhook, portal)
+- [x] Supabase schema (`SUPABASE_SCHEMA.sql`)
+
+---
+
+## 🔧 Next Steps
+
+### Step 1: Run Supabase Schema
+Execute the database schema to create user and usage tables.
+
+**Sub-steps**:
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project
+2. Click **SQL Editor** in the left sidebar
+3. Open `docs/SUPABASE_SCHEMA.sql` from this repo
+4. Copy the entire contents and paste into the SQL Editor
+5. Click **Run** to execute
+6. Verify tables created: `users`, `usage`
+
+---
+
+### Step 2: Create Stripe Product
+Set up the Pro subscription product in Stripe.
+
+**Sub-steps**:
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com) → Products
+2. Click **+ Add product**
+3. Fill in:
+   - **Name**: `GitConnect Pro`
+   - **Description**: `Managed API keys for Deepgram and Claude. No need to provide your own.`
+   - **Pricing**: `$9.99/month` (or your chosen price)
+   - **Billing period**: Monthly
+4. Click **Save product**
+5. Copy the **Price ID** (starts with `price_`)
+
+---
+
+### Step 3: Add Missing Environment Variables
+Add these to Netlify → Site settings → Environment variables:
+
+| Variable | Where to Get |
+|----------|--------------|
+| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → Secret key |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe → Developers → API keys → Publishable key |
+| `STRIPE_PRICE_ID` | From Step 2 above |
+| `STRIPE_WEBHOOK_SECRET` | Created in Step 4 below |
+| `DEEPGRAM_API_KEY` | [Deepgram Console](https://console.deepgram.com) → API Keys |
+| `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com) → API Keys |
+| `VITE_SUPABASE_URL` | Same as existing `SUPABASE_URL` |
+| `VITE_SUPABASE_ANON_KEY` | Same as existing `SUPABASE_ANON_KEY` |
+
+---
+
+### Step 4: Create Stripe Webhook
+Connect Stripe events to the app for subscription updates.
+
+**Sub-steps**:
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com) → Developers → Webhooks
+2. Click **+ Add endpoint**
+3. **Endpoint URL**: `https://gitconnect.pro/api/stripe/webhook`
+4. **Events to send**: Select these:
+   - `checkout.session.completed`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+5. Click **Add endpoint**
+6. Click the endpoint → Reveal **Signing secret**
+7. Copy and add as `STRIPE_WEBHOOK_SECRET` in Netlify
+
+---
+
+### Step 5: Redeploy
+Trigger a new deploy to pick up the environment variables.
+
+**Sub-steps**:
+1. Go to Netlify Dashboard → Deploys
+2. Click **Trigger deploy** → **Deploy site**
+3. Wait for deploy to complete (~1-2 min)
+
+---
+
+### Step 6: Test Subscription Flow
+Verify the complete checkout experience.
+
+**Sub-steps**:
+1. Visit https://gitconnect.pro
+2. Sign in with GitHub
+3. Click **Upgrade to Pro** button
+4. Complete Stripe Checkout (use test card: `4242 4242 4242 4242`)
+5. Verify redirect back to app with "Pro" badge
+6. Test voice transcription (should work without entering API key)
+7. Test AI code generation (should work without entering API key)
+8. Click **Manage** to verify Stripe Customer Portal works
+
+---
+
+## 📋 Future Roadmap
+
+### Near-term
+- [ ] Usage limits and tracking for Pro tier
+- [ ] Team tier with shared billing
+- [ ] Usage analytics dashboard
+
+### Medium-term
+- [ ] Multi-file editing
+- [ ] Branch switching and PR creation
+- [ ] Collaborative editing
+
+### Long-term
+- [ ] Desktop app (Electron)
+- [ ] VS Code extension
+- [ ] Custom AI models / fine-tuning
+
+---
+
+## 📚 Documentation
 
 | Document | Purpose |
 |----------|---------|
-| `GITHUB_APP_SETUP.md` | Step-by-step GitHub App creation guide |
-| `NETLIFY_DEPLOYMENT.md` | Netlify deployment and configuration |
-| `API_KEY_SECURITY.md` | API key storage options and security |
-| `SUBSCRIPTION_ARCHITECTURE.md` | Full subscription system design |
-| `SUPABASE_SCHEMA.sql` | Database schema for users/subscriptions |
-
----
-
-## Architecture Decisions
-
-### 1. GitHub App vs OAuth App
-
-**Decision**: Use GitHub App (not OAuth App)
-
-**Reasoning**:
-- **Fine-grained permissions** - Users control exactly which repos the app can access
-- **Short-lived tokens** - More secure; tokens expire and refresh automatically
-- **Better UX** - Users see clear permission prompts
-- **GitHub's recommendation** - OAuth Apps are legacy; GitHub Apps are the modern standard
-
-**Trade-off**: Slightly more complex setup (requires creating a GitHub App in the org settings)
-
-### 2. Netlify Functions for Auth
-
-**Decision**: Use serverless functions for OAuth token exchange
-
-**Reasoning**:
-- **Client secret protection** - Can't expose secrets in browser JavaScript
-- **No dedicated backend needed** - Functions run on-demand, scale automatically
-- **Free tier** - Netlify Functions included in free plan
-- **Co-located with frontend** - Same deploy, same repo
-
-**Alternative considered**: Cloudflare Workers, Supabase Edge Functions (equivalent options)
-
-### 3. Dual-Repo Strategy (Open Source + Commercial)
-
-**Decision**: Keep `owenpkent/MacroVox` as open source upstream, `okstudio1/gitconnect` as commercial fork
-
-**Reasoning**:
-- **Community contributions** - Open source repo accepts PRs from community
-- **Brand separation** - GitConnect is the commercial product name
-- **Flexibility** - Can add commercial-only features to fork without polluting upstream
-- **License control** - Upstream stays MIT; commercial can add proprietary features later
-
-**Sync strategy**:
-```bash
-# Pull community improvements into commercial
-git remote add upstream https://github.com/owenpkent/MacroVox.git
-git fetch upstream && git merge upstream/main
-```
-
-### 4. Direct API Calls (No Backend)
-
-**Decision**: Call Deepgram and Claude APIs directly from browser
-
-**Reasoning**:
-- **Lower latency** - No extra hop through a backend
-- **Simpler architecture** - Fewer moving parts
-- **User-provided keys** - Users enter their own API keys (stored in localStorage)
-
-**Trade-off**: 
-- Requires `anthropic-dangerous-direct-browser-access` header for Claude
-- Users need their own API keys (could add proxy later for managed experience)
-
-**Future option**: Add Netlify Functions as API proxy for users who don't want to manage keys
+| `GITHUB_APP_SETUP.md` | GitHub App creation and configuration |
+| `NETLIFY_DEPLOYMENT.md` | Netlify deployment settings |
+| `API_KEY_SECURITY.md` | API key handling and security |
+| `SUBSCRIPTION_ARCHITECTURE.md` | Subscription system design |
+| `SUPABASE_SCHEMA.sql` | Database schema for Supabase |
 
 ---
 
@@ -131,180 +184,26 @@ git fetch upstream && git merge upstream/main
 
 ```
 gitconnect/
-├── web/                    # React web app (THE PRODUCT)
+├── web/                        # React web app
 │   ├── src/
-│   │   ├── App.tsx         # Main application
+│   │   ├── App.tsx             # Main application
 │   │   ├── hooks/
-│   │   │   ├── useDeepgram.ts   # Voice transcription
-│   │   │   ├── useClaude.ts     # AI code generation
-│   │   │   └── useGitHub.ts     # GitHub OAuth + API
-│   │   └── components/
-│   │       └── FileBrowser.tsx  # Repo/file browser modal
-│   ├── netlify/
-│   │   └── functions/
-│   │       └── github-auth.ts   # OAuth token exchange
-│   ├── netlify.toml        # Netlify config
+│   │   │   ├── useDeepgram.ts  # Voice transcription
+│   │   │   ├── useClaude.ts    # AI code generation
+│   │   │   ├── useGitHub.ts    # GitHub API
+│   │   │   └── useSubscription.ts
+│   │   ├── components/
+│   │   │   ├── FileBrowser.tsx
+│   │   │   ├── SubscriptionBanner.tsx
+│   │   │   └── ...
+│   │   └── lib/
+│   │       └── supabase.ts     # Supabase client
+│   ├── netlify/functions/
+│   │   ├── github-auth.ts      # GitHub OAuth
+│   │   ├── deepgram-proxy.ts   # Deepgram API proxy
+│   │   ├── claude-proxy.ts     # Claude API proxy
+│   │   └── stripe.ts           # Stripe checkout/webhook
 │   └── package.json
-│
-├── src/                    # Python desktop app (SECONDARY)
-│   ├── ui.py               # PySide6 GUI
-│   ├── recorder.py         # Audio recording
-│   └── ...
-│
-├── designs/                # UI mockups and proposals
-│   └── proposals/          # Feature proposals
-│
-├── docs/                   # Documentation
-│   ├── COMMERCIAL_STRATEGY.md
-│   └── STATUS_AND_ROADMAP.md  # THIS FILE
-│
-├── VISION.md               # Product vision
-├── TODO.md                 # Task tracking
-└── README.md               # Project overview
+├── docs/                       # Documentation
+└── README.md
 ```
-
----
-
-## Next Steps (In Order)
-
-### Step 1: Create GitHub App (YOU DO THIS)
-
-**URL**: https://github.com/organizations/okstudio1/settings/apps/new
-
-**Settings**:
-| Field | Value |
-|-------|-------|
-| GitHub App name | `GitConnect` |
-| Homepage URL | `https://gitconnect.pro` |
-| Callback URL | `https://gitconnect.pro/api/github-auth/callback` |
-| Expire user authorization tokens | ✅ Checked |
-| Request user authorization (OAuth) during installation | ✅ Checked |
-| Webhook → Active | ❌ Unchecked |
-
-**Permissions** (Repository):
-| Permission | Access |
-|------------|--------|
-| Contents | Read and write |
-| Metadata | Read-only (required) |
-
-**Where can this GitHub App be installed?**
-→ Select "Any account"
-
-**After creation, note**:
-- Client ID (shown on app page)
-- Client Secret (click "Generate a new client secret")
-
----
-
-### Step 2: Deploy to Netlify (I DO THIS)
-
-Once you provide the GitHub App credentials, I will:
-1. Deploy `okstudio1/gitconnect` to Netlify
-2. Set environment variables:
-   - `GITHUB_APP_CLIENT_ID`
-   - `GITHUB_APP_CLIENT_SECRET`
-3. Configure build settings:
-   - Base directory: `web`
-   - Build command: `npm run build`
-   - Publish directory: `web/dist`
-
----
-
-### Step 3: Connect Domain (YOU DO THIS)
-
-**Option A: Use Netlify DNS (Recommended)**
-1. In Netlify dashboard → Domain settings → Add custom domain → `gitconnect.pro`
-2. Netlify will provide nameservers (e.g., `dns1.p01.nsone.net`)
-3. Go to your domain registrar and update nameservers to Netlify's
-
-**Option B: Keep External DNS**
-Add these records at your registrar:
-```
-Type    Name    Value
-A       @       75.2.60.5
-CNAME   www     [your-site].netlify.app
-```
-
----
-
-### Step 4: Test End-to-End
-
-1. Visit https://gitconnect.pro
-2. Click "Sign in with GitHub"
-3. Authorize the GitConnect app
-4. Select a repository
-5. Load a file
-6. Tap mic, speak a code request
-7. Accept/reject the generated code
-8. Save back to GitHub
-
----
-
-## Environment Variables Required
-
-For Netlify deployment:
-
-```env
-GITHUB_APP_CLIENT_ID=Iv1.xxxxxxxxxxxx
-GITHUB_APP_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-For local development (`web/.env`):
-```env
-GITHUB_APP_CLIENT_ID=Iv1.xxxxxxxxxxxx
-GITHUB_APP_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-URL=http://localhost:8888
-```
-
----
-
-## Questions to Confirm
-
-Before proceeding, please verify:
-
-1. **Domain**: Is `gitconnect.pro` registered and you have access to DNS settings?
-
-2. **GitHub App**: Ready to create under okstudio1 org with the settings above?
-
-3. **API Keys**: Do you have (or will users provide their own):
-   - Deepgram API key (for voice transcription)
-   - Anthropic API key (for Claude code generation)
-
-4. **Branding**: Should we rename "MacroVox" references to "GitConnect" in the UI before launch?
-
-5. **Public launch**: Is this for personal use first, or immediate public availability?
-
----
-
-## Risk Assessment
-
-| Risk | Likelihood | Mitigation |
-|------|------------|------------|
-| Claude API CORS issues | Medium | Already using `anthropic-dangerous-direct-browser-access`; fallback is Netlify Function proxy |
-| GitHub rate limits | Low | User tokens have 5000 req/hr limit; sufficient for normal use |
-| Deepgram costs | Medium | Users provide own API keys; Deepgram has free tier |
-| Token expiry | Low | Implemented refresh token flow in github-auth function |
-
----
-
-## Timeline Estimate
-
-| Task | Time |
-|------|------|
-| Create GitHub App | 5 min |
-| Deploy to Netlify | 10 min |
-| Configure DNS | 5-30 min (depends on propagation) |
-| End-to-end test | 15 min |
-| **Total** | **~1 hour** |
-
----
-
-## Summary
-
-We're ready to deploy. The code is complete, the repo is set up under `okstudio1/gitconnect`, and the only blocking items are:
-
-1. **Create GitHub App** - Manual step in GitHub UI
-2. **Provide credentials** - So I can configure Netlify
-3. **DNS setup** - Point gitconnect.pro to Netlify
-
-Once those are done, GitConnect will be live at https://gitconnect.pro.
