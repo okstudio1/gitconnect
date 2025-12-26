@@ -211,7 +211,10 @@ export function useGitHub({ onError, onLogout }: UseGitHubOptions) {
     setIsLoading(true)
     try {
       const file = await fetchApi(`/repos/${currentRepo.owner}/${currentRepo.repo}/contents/${path}`)
-      const content = atob(file.content.replace(/\n/g, ''))
+      // Decode base64 to bytes, then decode as UTF-8
+      const binaryString = atob(file.content.replace(/\n/g, ''))
+      const bytes = Uint8Array.from(binaryString, c => c.charCodeAt(0))
+      const content = new TextDecoder('utf-8').decode(bytes)
       return {
         content,
         sha: file.sha,
