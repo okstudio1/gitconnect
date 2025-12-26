@@ -78,7 +78,7 @@ Execute the database schema to create user and usage tables.
 
 ---
 
-### Step 2: Create Stripe Product & Price 🔄 IN PROGRESS
+### Step 2: Create Stripe Product & Price ✅ COMPLETE
 Set up the Pro subscription product and pricing in Stripe.
 
 **Sub-steps**:
@@ -107,23 +107,23 @@ Set up the Pro subscription product and pricing in Stripe.
 
 ---
 
-### Step 3: Add Missing Environment Variables
+### Step 3: Add Missing Environment Variables ✅ COMPLETE
 Add these to Netlify → Site settings → Environment variables:
 
-| Variable | Where to Get |
-|----------|--------------|
-| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → Secret key |
-| `STRIPE_PUBLISHABLE_KEY` | Stripe → Developers → API keys → Publishable key |
-| `STRIPE_PRICE_ID` | From Step 2 above |
-| `STRIPE_WEBHOOK_SECRET` | Created in Step 4 below |
-| `DEEPGRAM_API_KEY` | [Deepgram Console](https://console.deepgram.com) → API Keys |
-| `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com) → API Keys |
-| `VITE_SUPABASE_URL` | Same as existing `SUPABASE_URL` |
-| `VITE_SUPABASE_ANON_KEY` | Same as existing `SUPABASE_ANON_KEY` |
+| Variable | Where to Get | Secret? |
+|----------|--------------|---------|
+| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys → Secret key | 🔒 YES |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe → Developers → API keys → Publishable key | ❌ No |
+| `STRIPE_PRICE_ID` | From Step 2 above | ❌ No |
+| `STRIPE_WEBHOOK_SECRET` | Created in Step 4 below | 🔒 YES |
+| `DEEPGRAM_API_KEY` | [Deepgram Console](https://console.deepgram.com) → API Keys | 🔒 YES |
+| `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com) → API Keys | 🔒 YES |
+| `VITE_SUPABASE_URL` | Supabase → Settings → API → Project URL | ❌ No |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API → Publishable key | ❌ No |
 
 ---
 
-### Step 4: Create Stripe Webhook
+### Step 4: Create Stripe Webhook ✅ COMPLETE
 Connect Stripe events to the app for subscription updates.
 
 **Sub-steps**:
@@ -140,7 +140,7 @@ Connect Stripe events to the app for subscription updates.
 
 ---
 
-### Step 5: Redeploy
+### Step 5: Redeploy 🔄 IN PROGRESS
 Trigger a new deploy to pick up the environment variables.
 
 **Sub-steps**:
