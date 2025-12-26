@@ -163,6 +163,7 @@ Verify the complete checkout experience.
 
 ### Long-term
 - [ ] Desktop app (Electron)
+- [ ] Android native app
 - [ ] VS Code extension
 - [ ] Custom AI models / fine-tuning
 
