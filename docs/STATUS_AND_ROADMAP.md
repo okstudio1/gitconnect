@@ -28,6 +28,7 @@
 | **GitHub Integration** | ✅ Complete — App installed, auth working |
 | **Subscription System** | 🔧 Code complete, needs configuration |
 | **Stripe Billing** | 📋 Account ready, needs product setup |
+| **Usage Throttling** | 📄 Documented — see [USAGE_THROTTLING.md](./USAGE_THROTTLING.md) |
 
 ---
 
@@ -62,7 +63,7 @@
 
 ## 🔧 Next Steps
 
-### Step 1: Run Supabase Schema
+### Step 1: Run Supabase Schema ✅ COMPLETE
 Execute the database schema to create user and usage tables.
 
 **Sub-steps**:
@@ -71,23 +72,38 @@ Execute the database schema to create user and usage tables.
 3. Open `docs/SUPABASE_SCHEMA.sql` from this repo
 4. Copy the entire contents and paste into the SQL Editor
 5. Click **Run** to execute
-6. Verify tables created: `users`, `usage`
+6. Verify tables created: `users`, `usage`, `daily_usage` ✅
+
+**Status**: Tables successfully created in Supabase. All three tables visible in Database → Tables view.
 
 ---
 
-### Step 2: Create Stripe Product
-Set up the Pro subscription product in Stripe.
+### Step 2: Create Stripe Product & Price 🔄 IN PROGRESS
+Set up the Pro subscription product and pricing in Stripe.
 
 **Sub-steps**:
-1. Go to [Stripe Dashboard](https://dashboard.stripe.com) → Products
+
+#### 2a. Create the Product
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com) → **Products**
 2. Click **+ Add product**
 3. Fill in:
    - **Name**: `GitConnect Pro`
-   - **Description**: `Managed API keys for Deepgram and Claude. No need to provide your own.`
-   - **Pricing**: `$9.99/month` (or your chosen price)
-   - **Billing period**: Monthly
-4. Click **Save product**
-5. Copy the **Price ID** (starts with `price_`)
+   - **Description**: `Unlock mobile agentic voice-powered coding. Perfect for developers who want hands-free code generation, transcription, and GitHub integration.`
+4. Click **Save product** (don't add pricing yet)
+
+#### 2b. Add Pricing
+1. On the product page, scroll to **Pricing** section
+2. Click **+ Add price**
+3. Fill in:
+   - **Price**: `$9.99` (or your chosen amount)
+   - **Billing period**: `Monthly`
+   - **Recurring**: Yes
+4. Click **Save price**
+5. **Copy the Price ID** (starts with `price_`) — you'll need this for Step 3
+
+**Important**: Save both:
+- **Product ID** (starts with `prod_`)
+- **Price ID** (starts with `price_`) — this is what goes in environment variables
 
 ---
 

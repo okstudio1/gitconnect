@@ -12,6 +12,7 @@ import { VoiceControlPanel } from './components/VoiceControlPanel'
 import { DeviceFlowLogin } from './components/DeviceFlowLogin'
 import { UserSettings } from './components/UserSettings'
 import { MarkdownPreview } from './components/MarkdownPreview'
+import { CSVPreview } from './components/CSVPreview'
 import { SubscriptionBanner } from './components/SubscriptionBanner'
 
 function App() {
@@ -190,9 +191,23 @@ function App() {
     const map: Record<string, string> = {
       ts: 'typescript', tsx: 'typescript', js: 'javascript', jsx: 'javascript',
       py: 'python', rb: 'ruby', go: 'go', rs: 'rust', java: 'java',
-      json: 'json', md: 'markdown', css: 'css', html: 'html', yml: 'yaml', yaml: 'yaml'
+      json: 'json', md: 'markdown', css: 'css', html: 'html', yml: 'yaml', yaml: 'yaml',
+      csv: 'plaintext'
     }
     return map[ext || ''] || 'plaintext'
+  }
+
+  const isPreviewableFile = (path: string) => {
+    const ext = path.split('.').pop()?.toLowerCase()
+    return ext === 'md' || ext === 'csv'
+  }
+
+  const isCSVFile = (path: string) => {
+    return path.split('.').pop()?.toLowerCase() === 'csv'
+  }
+
+  const isMarkdownFile = (path: string) => {
+    return path.split('.').pop()?.toLowerCase() === 'md'
   }
 
   const toggleMic = () => {
@@ -291,7 +306,7 @@ function App() {
 
           {/* Center: Code Editor with Markdown Preview */}
           <div className="flex-1 min-w-0 flex flex-col">
-            {currentFile.path.endsWith('.md') && (
+            {isPreviewableFile(currentFile.path) && (
               <div className="flex items-center gap-1 px-2 py-1 bg-slate-800 border-b border-slate-700">
                 <button
                   onClick={() => setShowPreview(false)}
@@ -317,9 +332,13 @@ function App() {
                   <p className="text-slate-400 text-lg">Sign in to access your GitHub repositories and start coding</p>
                 </div>
               </div>
-            ) : showPreview && currentFile.path.endsWith('.md') ? (
+            ) : showPreview && isMarkdownFile(currentFile.path) ? (
               <div className="flex-1 overflow-auto p-4 bg-slate-900">
                 <MarkdownPreview content={code} />
+              </div>
+            ) : showPreview && isCSVFile(currentFile.path) ? (
+              <div className="flex-1 overflow-auto p-4 bg-slate-900">
+                <CSVPreview content={code} />
               </div>
             ) : (
               <Editor
@@ -432,7 +451,7 @@ function App() {
 
       {/* Editor with Preview Toggle for Markdown */}
       <div className="flex-1 min-h-0 flex flex-col">
-        {currentFile.path.endsWith('.md') && (
+        {isPreviewableFile(currentFile.path) && (
           <div className="flex items-center gap-1 px-2 py-1 bg-slate-800 border-b border-slate-700">
             <button
               onClick={() => setShowPreview(false)}
@@ -450,9 +469,13 @@ function App() {
             </button>
           </div>
         )}
-        {showPreview && currentFile.path.endsWith('.md') ? (
+        {showPreview && isMarkdownFile(currentFile.path) ? (
           <div className="flex-1 overflow-auto p-4 bg-slate-900">
             <MarkdownPreview content={code} />
+          </div>
+        ) : showPreview && isCSVFile(currentFile.path) ? (
+          <div className="flex-1 overflow-auto p-4 bg-slate-900">
+            <CSVPreview content={code} />
           </div>
         ) : (
           <Editor
