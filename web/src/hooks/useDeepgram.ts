@@ -3,9 +3,11 @@ import { useState, useRef, useCallback } from 'react'
 interface UseDeepgramOptions {
   onTranscript: (text: string, isFinal: boolean) => void
   apiKey?: string
+  useProxy?: boolean
+  githubId?: string
 }
 
-export function useDeepgram({ onTranscript, apiKey }: UseDeepgramOptions) {
+export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDeepgramOptions) {
   const [isListening, setIsListening] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   
@@ -13,16 +15,43 @@ export function useDeepgram({ onTranscript, apiKey }: UseDeepgramOptions) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
-  const startListening = useCallback(async () => {
-    const key = apiKey || localStorage.getItem('deepgram_api_key')
+  const getApiKey = async (): Promise<string | null> => {
+    // If using proxy (Pro subscriber), fetch key from server
+    if (useProxy && githubId) {
+      try {
+        const response = await fetch('/api/deepgram-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ github_id: githubId })
+        })
+        
+        if (response.status === 402) {
+          // Subscription required - fall back to user key
+          console.log('Subscription required for managed keys')
+          return null
+        }
+        
+        const data = await response.json()
+        if (data.apiKey) return data.apiKey
+      } catch (error) {
+        console.error('Failed to get proxy key:', error)
+      }
+    }
     
-    if (!key) {
+    // Fall back to user-provided key
+    return apiKey || localStorage.getItem('deepgram_api_key')
+  }
+
+  const startListening = useCallback(async () => {
+    let finalKey = await getApiKey()
+    
+    if (!finalKey) {
       const userKey = prompt('Enter your Deepgram API key:')
       if (!userKey) return
       localStorage.setItem('deepgram_api_key', userKey)
+      finalKey = userKey
     }
     
-    const finalKey = key || localStorage.getItem('deepgram_api_key')
     if (!finalKey) return
 
     setIsConnecting(true)

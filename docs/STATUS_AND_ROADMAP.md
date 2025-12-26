@@ -1,6 +1,6 @@
 # GitConnect - Project Status & Roadmap
 
-**Last Updated**: December 20, 2024  
+**Last Updated**: December 25, 2024  
 **Domain**: gitconnect.pro  
 **Repository**: https://github.com/okstudio1/gitconnect  
 **Upstream (Open Source)**: https://github.com/owenpkent/MacroVox  
@@ -18,6 +18,8 @@ A **voice-powered GitHub editor** that lets you browse, edit, and commit code to
 - **Claude AI Integration** - Voice → code generation with accept/reject flow
 - **GitHub Integration** - Browse repos, load files, save directly to GitHub
 - **Agent vs Dictation Mode** - AI interprets intent OR raw dictation
+- **Device Flow Auth** - Mobile-friendly GitHub login with code entry
+- **Responsive Layout** - Portrait (mobile) and landscape (desktop) modes
 
 ---
 
@@ -31,24 +33,27 @@ A **voice-powered GitHub editor** that lets you browse, edit, and commit code to
 | Deepgram voice transcription | ✅ Done | WebSocket streaming to nova-2 |
 | Claude code generation | ✅ Done | Direct API with accept/reject UI |
 | GitHub file read/write | ✅ Done | REST API integration |
-| GitHub OAuth → GitHub App migration | ✅ Done | Better security, fine-grained permissions |
-| Netlify Functions for auth | ✅ Done | Token exchange, refresh support |
-| Commercial repo setup | ✅ Done | okstudio1/gitconnect on GitHub |
-| Full project migrated | ✅ Done | Designs, docs, proposals included |
-| GitHub App creation | ✅ Done | Credentials saved securely |
-| Domain configuration | ✅ Done | DNS connected to Netlify (propagating) |
+| GitHub App (GitConnectPro) | ✅ Done | Fine-grained permissions, Device Flow |
+| Netlify deployment | ✅ Done | Site live at gitconnect.pro |
+| Domain configuration | ✅ Done | DNS configured, HTTPS enabled |
+| User settings panel | ✅ Done | Profile, API keys, repo access link |
+| Logo | ✅ Done | Branding assets in place |
+| Supabase setup | ✅ Done | Database configured, env vars in Netlify |
+| Stripe account | ✅ Done | Account created, ready for product setup |
+| API proxy functions | ✅ Done | `deepgram-proxy.ts`, `claude-proxy.ts` |
+| Stripe functions | ✅ Done | `stripe.ts` - checkout, webhook, portal |
+| Subscription hooks | ✅ Done | `useSubscription.ts` for state management |
+| Subscription UI | ✅ Done | `SubscriptionBanner.tsx` component |
 
-### 🔄 In Progress / Next Up
+### 🔄 In Progress
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Netlify deployment | ✅ Done | Site live at gitconnect.pro |
-| User settings panel | ✅ Done | Profile, API keys, repo access link |
-| Generate logo | 🎨 Pending | Need branding assets |
-| Supabase setup | 📋 Pending | Database for user/subscription storage |
-| Stripe integration | 📋 Pending | Subscription billing |
-| API proxy functions | 📋 Pending | Deepgram + Claude proxies |
-| Subscription UI | 📋 Pending | Checkout, upgrade, usage display |
+| Wire up subscription to App | 🔧 In Progress | Integrating hooks into main app |
+| Run Supabase schema | 📋 Pending | Need to execute `SUPABASE_SCHEMA.sql` |
+| Add Stripe env vars | 📋 Pending | Price ID, webhook secret needed |
+| Add API keys for proxy | 📋 Pending | DEEPGRAM_API_KEY, ANTHROPIC_API_KEY |
+| End-to-end subscription test | 📋 Pending | Full checkout flow verification |
 
 ### 📚 Documentation Created
 
@@ -58,6 +63,7 @@ A **voice-powered GitHub editor** that lets you browse, edit, and commit code to
 | `NETLIFY_DEPLOYMENT.md` | Netlify deployment and configuration |
 | `API_KEY_SECURITY.md` | API key storage options and security |
 | `SUBSCRIPTION_ARCHITECTURE.md` | Full subscription system design |
+| `SUPABASE_SCHEMA.sql` | Database schema for users/subscriptions |
 
 ---
 

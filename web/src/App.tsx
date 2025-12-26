@@ -5,12 +5,14 @@ import { useDeepgram } from './hooks/useDeepgram'
 import { useClaude } from './hooks/useClaude'
 import { useGitHub } from './hooks/useGitHub'
 import { useOrientation } from './hooks/useOrientation'
+import { useSubscription } from './hooks/useSubscription'
 import { FileBrowser } from './components/FileBrowser'
 import { FileBrowserPanel } from './components/FileBrowserPanel'
 import { VoiceControlPanel } from './components/VoiceControlPanel'
 import { DeviceFlowLogin } from './components/DeviceFlowLogin'
 import { UserSettings } from './components/UserSettings'
 import { MarkdownPreview } from './components/MarkdownPreview'
+import { SubscriptionBanner } from './components/SubscriptionBanner'
 
 function App() {
   const [code, setCode] = useState('')
@@ -61,6 +63,16 @@ function App() {
     }
   })
 
+  // Subscription management - syncs user to Supabase and tracks Pro status
+  const { 
+    isPro, 
+    isLoading: isSubscriptionLoading, 
+    startCheckout, 
+    openPortal 
+  } = useSubscription({
+    githubUser: user ? { id: user.id, login: user.login, email: user.email } : null
+  })
+
   const handleCodeGenerated = useCallback((edit: { action: string; position?: { line: number }; code: string; explanation: string }) => {
     setPendingEdit({
       code: edit.code,
@@ -69,9 +81,12 @@ function App() {
     })
   }, [])
 
+  // Pro subscribers use managed API keys via proxy
   const { isProcessing, generateCode } = useClaude({
     onCodeGenerated: handleCodeGenerated,
-    onError: (err) => setError(err)
+    onError: (err) => setError(err),
+    useProxy: isPro,
+    githubId: user?.id?.toString()
   })
 
   const insertTextAtCursor = useCallback((text: string) => {
@@ -107,7 +122,9 @@ function App() {
   }, [code, generateCode, mode, insertTextAtCursor])
 
   const { isListening, isConnecting, startListening, stopListening } = useDeepgram({
-    onTranscript: handleTranscript
+    onTranscript: handleTranscript,
+    useProxy: isPro,
+    githubId: user?.id?.toString()
   })
 
   const handleEditorMount = (editor: any) => {
@@ -232,6 +249,14 @@ function App() {
                   <span>Commit</span>
                 </button>
               </div>
+            )}
+            {isAuthenticated && (
+              <SubscriptionBanner
+                isPro={isPro}
+                isLoading={isSubscriptionLoading}
+                onUpgrade={startCheckout}
+                onManage={openPortal}
+              />
             )}
             {isAuthenticated ? (
               <UserSettings user={user} onLogout={logout} />
@@ -381,6 +406,14 @@ function App() {
                 <Save size={20} className="text-slate-400" />
               )}
             </button>
+          )}
+          {isAuthenticated && (
+            <SubscriptionBanner
+              isPro={isPro}
+              isLoading={isSubscriptionLoading}
+              onUpgrade={startCheckout}
+              onManage={openPortal}
+            />
           )}
           {isAuthenticated ? (
             <UserSettings user={user} onLogout={logout} />

@@ -14,9 +14,11 @@ interface FileContent {
 }
 
 interface GitHubUser {
+  id: number
   login: string
   avatar_url: string
   name: string | null
+  email: string | null
 }
 
 interface UseGitHubOptions {
