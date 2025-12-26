@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import Editor from '@monaco-editor/react'
 import { Mic, MicOff, Play, Loader2, Check, X, Bot, Type, LogIn, Eye, Code, GitCommit, Save } from 'lucide-react'
 import { useDeepgram } from './hooks/useDeepgram'
@@ -64,15 +64,19 @@ function App() {
     }
   })
 
+  // Memoize githubUser to prevent infinite re-renders in useSubscription
+  const githubUser = useMemo(() => {
+    if (!user) return null
+    return { id: user.id, login: user.login, email: user.email }
+  }, [user?.id, user?.login, user?.email])
+
   // Subscription management - syncs user to Supabase and tracks Pro status
   const { 
     isPro, 
     isLoading: isSubscriptionLoading, 
     startCheckout, 
     openPortal 
-  } = useSubscription({
-    githubUser: user ? { id: user.id, login: user.login, email: user.email } : null
-  })
+  } = useSubscription({ githubUser })
 
   const handleCodeGenerated = useCallback((edit: { action: string; position?: { line: number }; code: string; explanation: string }) => {
     setPendingEdit({
