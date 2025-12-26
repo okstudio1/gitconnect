@@ -30,11 +30,18 @@ export const handler: Handler = async (event) => {
 
   // POST /api/stripe/create-checkout - Create Stripe checkout session
   if (event.httpMethod === 'POST' && path === '/create-checkout') {
-    if (!stripe || !STRIPE_PRICE_ID) {
+    if (!stripe) {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Stripe not configured' })
+        body: JSON.stringify({ error: 'Stripe not configured: missing STRIPE_SECRET_KEY' })
+      }
+    }
+    if (!STRIPE_PRICE_ID) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Stripe not configured: missing STRIPE_PRICE_ID' })
       }
     }
 
@@ -98,10 +105,14 @@ export const handler: Handler = async (event) => {
 
     } catch (error) {
       console.error('Checkout error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Failed to create checkout session' })
+        body: JSON.stringify({ 
+          error: 'Failed to create checkout session',
+          details: errorMessage
+        })
       }
     }
   }
