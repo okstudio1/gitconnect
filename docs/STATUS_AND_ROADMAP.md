@@ -26,7 +26,7 @@
 |----------|--------|
 | **Core App** | ✅ Complete — Live at gitconnect.pro |
 | **GitHub Integration** | ✅ Complete — App installed, auth working |
-| **Subscription System** | ⚠️ Code complete, **needs Netlify env vars** (see Step 7 below) |
+| **Subscription System** | ✅ Working — Pro badge, Manage button, webhooks all functional |
 | **Stripe Billing** | ✅ Live — Identity verified, payments working |
 | **Stripe Emails** | ✅ Enabled — Invoice emails configured |
 | **Legal Pages** | ✅ Privacy Policy & Terms of Use created |
@@ -35,7 +35,7 @@
 | **Web App Playbook** | 📄 See [WEB_APP_PLAYBOOK.md](./WEB_APP_PLAYBOOK.md) |
 | **GitHub Docs** | 📄 See [GITHUB_INTEGRATION.md](./GITHUB_INTEGRATION.md) |
 
-### ⚠️ NEXT ACTION: See [Step 7](#step-7-add-missing-netlify-environment-variables-%EF%B8%8F-blocking) — Add missing Netlify env vars
+### 📋 NEXT: [Step 9](#step-9-voice-visual-feedback) — Add visual feedback for voice recording
 
 ---
 
@@ -172,37 +172,21 @@ Verify the complete checkout experience.
 
 ---
 
-## 🚨 IMMEDIATE ACTION REQUIRED
+## ✅ Subscription System Fixed
 
-### Step 7: Add Missing Netlify Environment Variables ⚠️ BLOCKING
+### Step 7: Add Missing Netlify Environment Variables ✅ DONE
 
-**Problem**: The Stripe webhook cannot update Supabase because server-side env vars are missing.  
-**Impact**: After payment, users don't see "Pro" badge and mic still asks for API key.
+Added `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` to Netlify environment variables.
 
-**DO THIS NOW:**
+### Step 8: Fix User Record ✅ DONE
 
-1. Go to **Netlify → Site settings → Environment variables**
-2. Add these TWO variables:
+Resent Stripe webhook from Dashboard → Developers → Webhooks → Resend to populate `stripe_customer_id`.
 
-| Variable | Value | Secret? |
-|----------|-------|---------|
-| `SUPABASE_URL` | Same URL as `VITE_SUPABASE_URL` (your Supabase project URL) | No |
-| `SUPABASE_SERVICE_KEY` | Supabase → Settings → API → **service_role** secret key | 🔒 YES |
-
-3. **Redeploy the site** after adding these variables
-
----
-
-### Step 8: Manually Fix Your User Record (One-Time) ⚠️ DO THIS
-
-Since the webhook failed during your initial payment, manually update your subscription status:
-
-1. Go to **Supabase Dashboard** → **Table Editor** → **users**
-2. Find your row (search by your GitHub username)
-3. Click to edit and set: `subscription_status` = `pro`
-4. Save the row
-
-After this, refresh gitconnect.pro — you should see "Pro" badge and mic will use managed API keys.
+### Current Status
+- ✅ Pro badge shows correctly
+- ✅ "Manage" button opens Stripe billing portal
+- ✅ Stripe invoice emails enabled
+- 🔧 Voice transcription fix deployed (dependency array bug)
 
 ---
 
@@ -216,12 +200,20 @@ After this, refresh gitconnect.pro — you should see "Pro" badge and mic will u
 | Webhook error logging | ✅ Added detailed logging to diagnose issues |
 | Privacy Policy page | ✅ Created at `/privacy.html` |
 | Terms of Use page | ✅ Created at `/terms.html` |
+| Billing portal error handling | ✅ Shows error message if portal fails |
+| Deepgram dependency array bug | ✅ Fixed — useProxy/githubId now in deps |
 
 ---
 
 ## 📋 Future TODO
 
-### Step 9: Account & Billing Page
+### Step 9: Voice Visual Feedback
+
+- [ ] Add pulsing animation around mic button when listening
+- [ ] Show audio level visualization while speaking
+- [ ] Visual confirmation when transcription is received
+
+### Step 10: Account & Billing Page
 
 Create an account management section with:
 - [ ] Current subscription status display
@@ -230,7 +222,7 @@ Create an account management section with:
 - [ ] Usage statistics
 - [ ] Cancel subscription option
 
-### Step 10: Add Legal Page Links
+### Step 11: Add Legal Page Links
 
 - [x] Privacy Policy (`/privacy.html`) — Created
 - [x] Terms of Use (`/terms.html`) — Created
