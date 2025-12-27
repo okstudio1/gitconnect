@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
 import Editor from '@monaco-editor/react'
-import { Mic, MicOff, Play, Loader2, Check, X, Bot, Type, LogIn, Eye, Code, GitCommit, Save } from 'lucide-react'
+import { Mic, MicOff, Play, Loader2, Check, X, Bot, Type, LogIn, Eye, Code, GitCommit, Save, Sparkles } from 'lucide-react'
 import { useDeepgram } from './hooks/useDeepgram'
 import { useClaude } from './hooks/useClaude'
 import { useGitHub } from './hooks/useGitHub'
@@ -30,6 +30,7 @@ function App() {
   const [commitMessage, setCommitMessage] = useState('')
   const [hasChanges, setHasChanges] = useState(false)
   const [originalCode, setOriginalCode] = useState('')
+  const [isGeneratingCommitMsg, setIsGeneratingCommitMsg] = useState(false)
   const editorRef = useRef<any>(null)
   const cursorLineRef = useRef(1)
 
@@ -190,6 +191,83 @@ function App() {
     setIsSaving(false)
   }
 
+  const generateCommitMessage = async () => {
+    if (!hasChanges) return
+    
+    setIsGeneratingCommitMsg(true)
+    try {
+      const selectedModel = localStorage.getItem('claude_model') || 'claude-sonnet-4-20250514'
+      const shouldUseProxy = isPro && user?.id
+      
+      const prompt = `Generate a concise git commit message for these changes.
+
+File: ${currentFile.path}
+
+Original code:
+\`\`\`
+${originalCode.slice(0, 2000)}
+\`\`\`
+
+New code:
+\`\`\`
+${code.slice(0, 2000)}
+\`\`\`
+
+Respond with ONLY the commit message, no quotes, no explanation. Use conventional commit format if appropriate (feat:, fix:, docs:, etc). Keep it under 72 characters.`
+
+      let response: Response
+      
+      if (shouldUseProxy) {
+        response = await fetch('/api/claude-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            github_id: user?.id?.toString(),
+            system: 'You are a helpful assistant that generates concise git commit messages.',
+            messages: [{ role: 'user', content: prompt }],
+            model: selectedModel,
+            max_tokens: 100
+          })
+        })
+      } else {
+        const apiKey = localStorage.getItem('anthropic_api_key')
+        if (!apiKey) {
+          setError('API key required for AI commit messages. Add in Settings or upgrade to Pro.')
+          return
+        }
+        response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            max_tokens: 100,
+            system: 'You are a helpful assistant that generates concise git commit messages.',
+            messages: [{ role: 'user', content: prompt }]
+          })
+        })
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to generate commit message')
+      }
+
+      const data = await response.json()
+      const generatedMessage = data.content?.[0]?.text?.trim() || ''
+      if (generatedMessage) {
+        setCommitMessage(generatedMessage)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate commit message')
+    } finally {
+      setIsGeneratingCommitMsg(false)
+    }
+  }
+
   const getLanguageFromPath = (path: string) => {
     const ext = path.split('.').pop()?.toLowerCase()
     const map: Record<string, string> = {
@@ -247,13 +325,27 @@ function App() {
                     Unsaved
                   </span>
                 )}
-                <input
-                  type="text"
-                  placeholder="Commit message..."
-                  value={commitMessage}
-                  onChange={(e) => setCommitMessage(e.target.value)}
-                  className="px-2 py-1 text-sm bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 w-48 focus:outline-none focus:border-blue-500"
-                />
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    placeholder="Commit message..."
+                    value={commitMessage}
+                    onChange={(e) => setCommitMessage(e.target.value)}
+                    className="px-2 py-1 text-sm bg-slate-700 border border-slate-600 rounded-l text-white placeholder-slate-400 w-48 focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    onClick={generateCommitMessage}
+                    disabled={isGeneratingCommitMsg || !hasChanges}
+                    className="px-2 py-1 bg-slate-600 hover:bg-slate-500 border border-l-0 border-slate-600 rounded-r text-slate-300 transition-colors disabled:opacity-50"
+                    title="Generate AI commit message"
+                  >
+                    {isGeneratingCommitMsg ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={14} />
+                    )}
+                  </button>
+                </div>
                 <button 
                   onClick={handleSave}
                   disabled={isSaving || isGitHubLoading || !hasChanges}
