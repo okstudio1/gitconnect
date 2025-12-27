@@ -115,6 +115,7 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
 
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
+            console.log('Sending audio chunk:', event.data.size, 'bytes')
             socket.send(event.data)
           }
         }
@@ -124,8 +125,10 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
       }
 
       socket.onmessage = (event) => {
+        console.log('Deepgram message received:', event.data.substring(0, 200))
         const data = JSON.parse(event.data)
         const transcript = data.channel?.alternatives?.[0]?.transcript
+        console.log('Transcript:', transcript, 'is_final:', data.is_final)
         if (transcript) {
           onTranscript(transcript, data.is_final)
         }
