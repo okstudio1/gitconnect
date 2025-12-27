@@ -99,6 +99,23 @@ function App() {
     if (!editorRef.current) return
     const editor = editorRef.current
     const position = editor.getPosition()
+    if (!position) {
+      // If no cursor position, append to end of document
+      const model = editor.getModel()
+      if (!model) return
+      const lastLine = model.getLineCount()
+      const lastColumn = model.getLineMaxColumn(lastLine)
+      editor.executeEdits('voice-input', [{
+        range: {
+          startLineNumber: lastLine,
+          startColumn: lastColumn,
+          endLineNumber: lastLine,
+          endColumn: lastColumn
+        },
+        text: text + ' '
+      }])
+      return
+    }
     editor.executeEdits('voice-input', [{
       range: {
         startLineNumber: position.lineNumber,
@@ -110,22 +127,25 @@ function App() {
     }])
   }, [])
 
+  // Track accumulated final transcripts
+  const finalTranscriptRef = useRef('')
+  
   const handleTranscript = useCallback((text: string, isFinal: boolean) => {
-    setTranscript(text)
     if (isFinal && text.trim()) {
-      if (mode === 'agent') {
-        generateCode(text, {
-          fileContent: code,
-          cursorLine: cursorLineRef.current,
-          language: 'typescript',
-          fileName: 'index.ts'
-        })
-      } else {
+      // Accumulate final transcripts
+      finalTranscriptRef.current += (finalTranscriptRef.current ? ' ' : '') + text
+      setTranscript(finalTranscriptRef.current)
+      
+      if (mode === 'transcribe') {
+        // In dictation mode, insert each final segment immediately
         insertTextAtCursor(text)
-        setTranscript('')
       }
+    } else {
+      // Show interim results (current speech being processed)
+      const accumulated = finalTranscriptRef.current
+      setTranscript(accumulated + (accumulated ? ' ' : '') + text)
     }
-  }, [code, generateCode, mode, insertTextAtCursor])
+  }, [mode, insertTextAtCursor])
 
   const { isListening, isConnecting, audioLevel, startListening, stopListening } = useDeepgram({
     onTranscript: handleTranscript,
@@ -294,8 +314,21 @@ Respond with ONLY the commit message, no quotes, no explanation. Use conventiona
 
   const toggleMic = () => {
     if (isListening) {
+      // Stopping - if in agent mode, process the accumulated transcript
+      if (mode === 'agent' && finalTranscriptRef.current.trim()) {
+        generateCode(finalTranscriptRef.current, {
+          fileContent: code,
+          cursorLine: cursorLineRef.current,
+          language: 'typescript',
+          fileName: 'index.ts'
+        })
+      }
+      finalTranscriptRef.current = ''
+      setTranscript('')
       stopListening()
     } else {
+      finalTranscriptRef.current = ''
+      setTranscript('')
       startListening()
     }
   }
