@@ -18,6 +18,7 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
   const getApiKey = async (): Promise<string | null> => {
     // If using proxy (Pro subscriber), fetch key from server
     if (useProxy && githubId) {
+      console.log('Pro user - fetching managed Deepgram key for github_id:', githubId)
       try {
         const response = await fetch('/api/deepgram-proxy', {
           method: 'POST',
@@ -31,14 +32,24 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
           return null
         }
         
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('Deepgram proxy error:', response.status, errorData)
+          return null
+        }
+        
         const data = await response.json()
-        if (data.apiKey) return data.apiKey
+        if (data.apiKey) {
+          console.log('Got managed Deepgram key successfully')
+          return data.apiKey
+        }
       } catch (error) {
         console.error('Failed to get proxy key:', error)
       }
     }
     
     // Fall back to user-provided key
+    console.log('Using user-provided Deepgram key')
     return apiKey || localStorage.getItem('deepgram_api_key')
   }
 
@@ -115,7 +126,7 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
       console.error('Failed to start listening:', error)
       setIsConnecting(false)
     }
-  }, [apiKey, onTranscript])
+  }, [apiKey, onTranscript, useProxy, githubId])
 
   const stopListening = useCallback(() => {
     if (mediaRecorderRef.current) {
