@@ -182,11 +182,12 @@ Added `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` to Netlify environment variables
 
 Resent Stripe webhook from Dashboard → Developers → Webhooks → Resend to populate `stripe_customer_id`.
 
-### Current Status
+### Current Status (Dec 26, 2025)
 - ✅ Pro badge shows correctly
 - ✅ "Manage" button opens Stripe billing portal
 - ✅ Stripe invoice emails enabled
-- 🔧 Voice transcription fix deployed (dependency array bug)
+- ✅ Voice transcription working with visual feedback
+- ✅ Transcript persists after mic off, editable, with copy/clear buttons
 
 ---
 
@@ -202,16 +203,24 @@ Resent Stripe webhook from Dashboard → Developers → Webhooks → Resend to p
 | Terms of Use page | ✅ Created at `/terms.html` |
 | Billing portal error handling | ✅ Shows error message if portal fails |
 | Deepgram dependency array bug | ✅ Fixed — useProxy/githubId now in deps |
+| Voice visual feedback | ✅ Pulsing rings + audio level indicator |
+| Transcript accumulation | ✅ Multiple sentences now accumulate properly |
+| Null position error | ✅ Fixed — falls back to end of document |
+| Transcript persistence | ✅ Stays visible after mic off |
+| Editable transcript | ✅ Textarea with copy/clear buttons |
 
 ---
 
 ## 📋 Future TODO
 
-### Step 9: Voice Visual Feedback
+### Step 9: Voice Visual Feedback ✅ COMPLETE
 
-- [ ] Add pulsing animation around mic button when listening
-- [ ] Show audio level visualization while speaking
-- [ ] Visual confirmation when transcription is received
+- [x] Add pulsing animation around mic button when listening
+- [x] Show audio level visualization while speaking
+- [x] Transcript persists after mic off
+- [x] Editable transcript textarea
+- [x] Copy transcript button
+- [x] Clear transcript button
 
 ### Step 10: Account & Billing Page
 
@@ -250,14 +259,27 @@ Create an account management section with:
 
 ---
 
-## 🎉 Recent Updates (December 26, 2024)
+## 🎉 Recent Updates (December 26, 2025)
 
+### Voice & Transcription
+- ✅ **Voice Visual Feedback** — Pulsing rings around mic button that respond to audio level
+- ✅ **Audio Level Indicator** — Real-time bar showing voice intensity
+- ✅ **Transcript Persistence** — Transcript stays visible after stopping mic
+- ✅ **Editable Transcript** — Edit your dictation in a textarea before using it
+- ✅ **Copy/Clear Buttons** — Quick actions for transcript management
+- ✅ **Transcript Accumulation** — Multiple sentences now properly accumulate
+
+### Subscription System
 - ✅ **Stripe Live Payments** — Identity verification complete, first subscription processed!
+- ✅ **Pro Badge & Billing Portal** — Working correctly after webhook fix
+- ✅ Fixed **subscription polling** — now retries after checkout to catch webhook updates
+- ✅ Fixed **duplicate subscription bug** — checkout blocks if already Pro
+
+### Other
 - ✅ Added **AI Commit Messages** — Click ✨ button to auto-generate commit messages
 - ✅ Added **Privacy Policy** and **Terms of Use** pages
 - ✅ Added **GitHub Integration docs** explaining how commits work
 - ✅ Added **GitHub Menu Design doc** for future multi-file commit feature
-- ✅ Fixed **subscription polling** — now retries after checkout to catch webhook updates
 - ✅ Added **CSV Preview** component with RainbowCSV-style column colorization
 - ✅ Added **Claude Model Selector** — choose between Sonnet 4, Opus 4, or Haiku 3.5
 - ✅ Fixed **infinite loop bug** in useSubscription hook
