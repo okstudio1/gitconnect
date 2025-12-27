@@ -46,9 +46,24 @@ export function useSubscription({ githubUser }: UseSubscriptionOptions) {
     const subscriptionResult = params.get('subscription')
     
     if (subscriptionResult === 'success') {
-      // Refresh subscription status after successful checkout
+      // Poll for subscription status update (webhook may take a moment)
       if (githubUser) {
-        getUserSubscription(githubUser.id.toString()).then(setStatus)
+        let attempts = 0
+        const maxAttempts = 10
+        const pollInterval = setInterval(async () => {
+          attempts++
+          const newStatus = await getUserSubscription(githubUser.id.toString())
+          if (newStatus === 'pro' || newStatus === 'team') {
+            setStatus(newStatus)
+            clearInterval(pollInterval)
+          } else if (attempts >= maxAttempts) {
+            clearInterval(pollInterval)
+            console.warn('Subscription status not updated after checkout - webhook may have failed')
+          }
+        }, 1500) // Check every 1.5 seconds
+        
+        // Cleanup on unmount
+        return () => clearInterval(pollInterval)
       }
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname)

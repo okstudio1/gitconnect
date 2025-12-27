@@ -27,10 +27,12 @@
 | **Core App** | ✅ Complete — Live at gitconnect.pro |
 | **GitHub Integration** | ✅ Complete — App installed, auth working |
 | **Subscription System** | ✅ Code complete and configured |
-| **Stripe Billing** | ⏸️ Configured, awaiting identity verification |
+| **Stripe Billing** | ✅ Live — Identity verified, payments working |
 | **Usage Throttling** | 📄 Documented — see [USAGE_THROTTLING.md](./USAGE_THROTTLING.md) |
 | **Troubleshooting** | 📄 See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) |
 | **Web App Playbook** | 📄 See [WEB_APP_PLAYBOOK.md](./WEB_APP_PLAYBOOK.md) |
+| **Legal Pages** | ✅ Privacy Policy & Terms of Use created |
+| **GitHub Docs** | 📄 See [GITHUB_INTEGRATION.md](./GITHUB_INTEGRATION.md) |
 
 ---
 
@@ -122,6 +124,10 @@ Add these to Netlify → Site settings → Environment variables:
 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com) → API Keys | 🔒 YES |
 | `VITE_SUPABASE_URL` | Supabase → Settings → API → Project URL | ❌ No |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API → Publishable key | ❌ No |
+| `SUPABASE_URL` | Same as VITE_SUPABASE_URL (for server functions) | ❌ No |
+| `SUPABASE_SERVICE_KEY` | Supabase → Settings → API → service_role key | 🔒 YES |
+
+**⚠️ IMPORTANT**: Both `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are required for the webhook to update subscription status!
 
 ---
 
@@ -154,37 +160,54 @@ Trigger a new deploy to pick up the environment variables.
 
 ---
 
-### Step 6: Test Subscription Flow ⏸️ BLOCKED
+### Step 6: Test Subscription Flow ✅ COMPLETE
 Verify the complete checkout experience.
 
-**Current Status**: Stripe checkout redirects correctly, but:
-- Using **live mode** API keys (test cards don't work)
-- Stripe identity verification required before live payments
+**Status**: ✅ Identity verification completed. Live payments working!
+- Checkout flow works end-to-end
+- User successfully subscribed (payment processed)
 
-**To complete testing, choose one option**:
+**Known Issues to Fix**:
+- ⚠️ After checkout, UI still shows "Upgrade to Pro" instead of "Pro" badge
+- ⚠️ No invoice email received (check Stripe email settings)
+- ⚠️ User was able to subscribe twice (need to check for existing subscription)
 
-#### Option A: Switch to Test Mode (Recommended for testing)
-1. Toggle **Test mode** in Stripe Dashboard (top right)
-2. Create a test product and price in test mode
-3. Copy test API keys (`sk_test_...`, `price_test_...`)
-4. Update `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID` in Netlify
-5. Redeploy and test with card `4242 4242 4242 4242`
+---
 
-#### Option B: Complete Identity Verification (For live payments)
-1. Go to Stripe Dashboard → Complete identity verification task
-2. Upload required documents
-3. Wait for approval (1-2 business days)
-4. Use real payment card to test
+### Step 7: Fix Post-Checkout Issues 🔧 IN PROGRESS
 
-**Sub-steps once unblocked**:
-1. Visit https://gitconnect.pro
-2. Sign in with GitHub
-3. Click **Upgrade to Pro** button
-4. Complete Stripe Checkout
-5. Verify redirect back to app with "Pro" badge
-6. Test voice transcription (should work without entering API key)
-7. Test AI code generation (should work without entering API key)
-8. Click **Manage** to verify Stripe Customer Portal works
+#### 7a. Pro Badge Not Showing After Payment
+**Root Cause**: Race condition — webhook hasn't updated Supabase by the time page loads.
+**Fix Applied**: Added polling mechanism to retry fetching subscription status for 15 seconds after checkout success.
+
+#### 7b. Invoice Emails
+**Action Required**: Configure Stripe to send invoice emails:
+1. Go to Stripe Dashboard → Settings → Emails
+2. Enable "Successful payments" and "Invoice finalized" emails
+3. Customize email templates if desired
+
+#### 7c. Prevent Double Subscriptions
+**Action Required**: Update checkout to check if user already has active subscription before creating new checkout session.
+
+---
+
+### Step 8: Account & Billing Page 📋 TODO
+
+Create an account management section with:
+- [ ] Current subscription status
+- [ ] Billing history / invoices
+- [ ] "Manage Subscription" button (Stripe Portal)
+- [ ] Usage statistics
+- [ ] Cancel subscription option
+
+---
+
+### Step 9: Add Legal Page Links 📋 TODO
+
+Add footer or settings links to:
+- [x] Privacy Policy (`/privacy.html`) — Created
+- [x] Terms of Use (`/terms.html`) — Created
+- [ ] Add links in app footer or settings menu
 
 ---
 
@@ -210,11 +233,16 @@ Verify the complete checkout experience.
 
 ## 🎉 Recent Updates (December 26, 2024)
 
+- ✅ **Stripe Live Payments** — Identity verification complete, first subscription processed!
+- ✅ Added **AI Commit Messages** — Click ✨ button to auto-generate commit messages
+- ✅ Added **Privacy Policy** and **Terms of Use** pages
+- ✅ Added **GitHub Integration docs** explaining how commits work
+- ✅ Added **GitHub Menu Design doc** for future multi-file commit feature
+- ✅ Fixed **subscription polling** — now retries after checkout to catch webhook updates
 - ✅ Added **CSV Preview** component with RainbowCSV-style column colorization
 - ✅ Added **Claude Model Selector** — choose between Sonnet 4, Opus 4, or Haiku 3.5
 - ✅ Fixed **infinite loop bug** in useSubscription hook
 - ✅ Fixed **Stripe empty email bug** in checkout flow
-- ✅ Renamed `VITE_SUPABASE_ANON_KEY` to `VITE_SUPABASE_PUBLISHABLE_KEY` for clarity
 - ✅ Added **RLS policies** for Supabase to allow anon key inserts
 - ✅ Created comprehensive troubleshooting and playbook documentation
 
@@ -232,6 +260,8 @@ Verify the complete checkout experience.
 | `USAGE_THROTTLING.md` | API usage tracking and quota system |
 | `TROUBLESHOOTING.md` | Common errors and solutions |
 | `WEB_APP_PLAYBOOK.md` | Guide for building new SaaS web apps |
+| `GITHUB_INTEGRATION.md` | How GitHub file operations work |
+| `GITHUB_MENU_DESIGN.md` | Design for future multi-file Git menu |
 
 ---
 

@@ -57,17 +57,29 @@ export const handler: Handler = async (event) => {
         }
       }
 
-      // Check if user already has a Stripe customer ID
+      // Check if user already has a Stripe customer ID or active subscription
       let customerId: string | undefined
       if (supabase) {
         const { data: user } = await supabase
           .from('users')
-          .select('stripe_customer_id')
+          .select('stripe_customer_id, subscription_status')
           .eq('github_id', github_id)
           .single()
 
         if (user?.stripe_customer_id) {
           customerId = user.stripe_customer_id
+        }
+
+        // Prevent double subscriptions
+        if (user?.subscription_status === 'pro' || user?.subscription_status === 'team') {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ 
+              error: 'Already subscribed',
+              message: 'You already have an active subscription. Use the billing portal to manage it.'
+            })
+          }
         }
       }
 
@@ -121,10 +133,24 @@ export const handler: Handler = async (event) => {
   // POST /api/stripe/webhook - Handle Stripe webhooks
   if (event.httpMethod === 'POST' && path === '/webhook') {
     if (!stripe || !STRIPE_WEBHOOK_SECRET || !supabase) {
+      console.error('Webhook not configured:', {
+        hasStripe: !!stripe,
+        hasWebhookSecret: !!STRIPE_WEBHOOK_SECRET,
+        hasSupabase: !!supabase,
+        hasSupabaseUrl: !!SUPABASE_URL,
+        hasSupabaseServiceKey: !!SUPABASE_SERVICE_KEY
+      })
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Webhook not configured' })
+        body: JSON.stringify({ 
+          error: 'Webhook not configured',
+          missing: {
+            stripe: !stripe,
+            webhookSecret: !STRIPE_WEBHOOK_SECRET,
+            supabase: !supabase
+          }
+        })
       }
     }
 
@@ -148,15 +174,40 @@ export const handler: Handler = async (event) => {
         case 'checkout.session.completed': {
           const session = stripeEvent.data.object as Stripe.Checkout.Session
           const githubId = session.metadata?.github_id
+          console.log('Checkout completed for github_id:', githubId, 'customer:', session.customer)
 
           if (githubId && session.customer) {
-            await supabase
+            const { data, error } = await supabase
               .from('users')
               .update({
                 stripe_customer_id: session.customer as string,
                 subscription_status: 'pro'
               })
               .eq('github_id', githubId)
+              .select()
+
+            if (error) {
+              console.error('Failed to update user subscription:', error)
+            } else {
+              console.log('Updated user subscription:', data)
+            }
+
+            // If no rows updated, the user might not exist yet - try upsert
+            if (!data || data.length === 0) {
+              console.log('No user found with github_id:', githubId, '- creating new record')
+              const { error: upsertError } = await supabase
+                .from('users')
+                .upsert({
+                  github_id: githubId,
+                  stripe_customer_id: session.customer as string,
+                  subscription_status: 'pro',
+                  github_login: session.metadata?.github_login || 'unknown'
+                }, { onConflict: 'github_id' })
+
+              if (upsertError) {
+                console.error('Failed to upsert user:', upsertError)
+              }
+            }
           }
           break
         }
