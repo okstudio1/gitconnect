@@ -182,12 +182,13 @@ Verify the complete checkout experience.
 
 #### 7b. Invoice Emails
 **Action Required**: Configure Stripe to send invoice emails:
-1. Go to Stripe Dashboard → Settings → Emails
-2. Enable "Successful payments" and "Invoice finalized" emails
-3. Customize email templates if desired
+1. Go to Stripe Dashboard → **Settings** (gear icon, top right)
+2. Click **"Customer emails"** in the left sidebar under Business settings
+3. Toggle ON: "Successful payments", "Refunds", "Invoice finalized"
+4. Or use this direct link: https://dashboard.stripe.com/settings/emails
 
-#### 7c. Prevent Double Subscriptions
-**Action Required**: Update checkout to check if user already has active subscription before creating new checkout session.
+#### 7c. Prevent Double Subscriptions ✅ FIXED
+**Status**: Implemented in `stripe.ts` — checkout now checks `subscription_status` before creating session and returns error if already subscribed.
 
 ---
 
