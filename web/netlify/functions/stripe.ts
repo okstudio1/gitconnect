@@ -84,7 +84,8 @@ export const handler: Handler = async (event) => {
         success_url: `${SITE_URL}?subscription=success`,
         cancel_url: `${SITE_URL}?subscription=cancelled`,
         customer: customerId,
-        customer_email: customerId ? undefined : email,
+        // Only pass email if customer doesn't exist AND email is valid
+        ...(customerId ? {} : email ? { customer_email: email } : {}),
         metadata: {
           github_id,
           github_login
