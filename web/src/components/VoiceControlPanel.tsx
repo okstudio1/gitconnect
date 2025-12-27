@@ -1,4 +1,4 @@
-import { Mic, MicOff, Loader2, Check, X, Bot, Type } from 'lucide-react'
+import { Mic, MicOff, Loader2, Check, X, Bot, Type, Copy, Trash2 } from 'lucide-react'
 
 interface PendingEdit {
   code: string
@@ -20,6 +20,8 @@ interface VoiceControlPanelProps {
   onAcceptEdit: () => void
   onRejectEdit: () => void
   onClearError: () => void
+  onTranscriptChange: (text: string) => void
+  onClearTranscript: () => void
 }
 
 export function VoiceControlPanel({
@@ -35,8 +37,15 @@ export function VoiceControlPanel({
   onToggleMode,
   onAcceptEdit,
   onRejectEdit,
-  onClearError
+  onClearError,
+  onTranscriptChange,
+  onClearTranscript
 }: VoiceControlPanelProps) {
+  const copyTranscript = async () => {
+    if (transcript) {
+      await navigator.clipboard.writeText(transcript)
+    }
+  }
   return (
     <div className="w-72 bg-slate-800 border-l border-slate-700 flex flex-col">
       {/* Header */}
@@ -181,21 +190,47 @@ export function VoiceControlPanel({
             </div>
           </div>
         ) : (
-          <div>
-            <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">
-              {isProcessing ? '⚡ Generating...' : isListening ? '🎤 Listening...' : 'Transcript'}
-            </div>
-            <div className="text-sm text-slate-300 min-h-[60px]">
-              {isProcessing ? (
-                <span className="text-blue-400 flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin" /> Processing with Claude...
-                </span>
-              ) : transcript || (
-                <span className="text-slate-500 italic">
-                  Speak to see transcript here...
-                </span>
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-slate-500 uppercase tracking-wide">
+                {isProcessing ? '⚡ Generating...' : isListening ? '🎤 Listening...' : 'Transcript'}
+              </div>
+              {transcript && !isListening && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={copyTranscript}
+                    className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded"
+                    title="Copy transcript"
+                  >
+                    <Copy size={14} />
+                  </button>
+                  <button
+                    onClick={onClearTranscript}
+                    className="p-1 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded"
+                    title="Clear transcript"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               )}
             </div>
+            {isProcessing ? (
+              <span className="text-blue-400 flex items-center gap-2 text-sm">
+                <Loader2 size={14} className="animate-spin" /> Processing with Claude...
+              </span>
+            ) : transcript ? (
+              <textarea
+                value={transcript}
+                onChange={(e) => onTranscriptChange(e.target.value)}
+                className="flex-1 w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-300 resize-none focus:outline-none focus:border-slate-500 min-h-[80px]"
+                placeholder="Speak to see transcript here..."
+                disabled={isListening}
+              />
+            ) : (
+              <div className="text-sm text-slate-500 italic min-h-[60px]">
+                Speak to see transcript here...
+              </div>
+            )}
           </div>
         )}
       </div>

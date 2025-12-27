@@ -323,14 +323,20 @@ Respond with ONLY the commit message, no quotes, no explanation. Use conventiona
           fileName: 'index.ts'
         })
       }
+      // Keep transcript visible after stopping - don't clear it
       finalTranscriptRef.current = ''
-      setTranscript('')
       stopListening()
     } else {
+      // Clear transcript when starting new recording
       finalTranscriptRef.current = ''
       setTranscript('')
       startListening()
     }
+  }
+  
+  const clearTranscript = () => {
+    setTranscript('')
+    finalTranscriptRef.current = ''
   }
 
   // Landscape Layout: [FileBrowser | Editor | VoiceControls]
@@ -511,6 +517,8 @@ Respond with ONLY the commit message, no quotes, no explanation. Use conventiona
             onAcceptEdit={acceptEdit}
             onRejectEdit={rejectEdit}
             onClearError={() => setError(null)}
+            onTranscriptChange={setTranscript}
+            onClearTranscript={clearTranscript}
           />
         </div>
 
