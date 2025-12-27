@@ -114,9 +114,13 @@ export function useSubscription({ githubUser }: UseSubscriptionOptions) {
       const data = await response.json()
       if (data.url) {
         window.location.href = data.url
+      } else if (data.error) {
+        console.error('Portal error:', data.error)
+        alert(`Unable to open billing portal: ${data.error}`)
       }
     } catch (error) {
       console.error('Portal error:', error)
+      alert('Unable to open billing portal. Please try again.')
     } finally {
       setIsLoading(false)
     }
