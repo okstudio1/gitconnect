@@ -127,7 +127,7 @@ function App() {
     }
   }, [code, generateCode, mode, insertTextAtCursor])
 
-  const { isListening, isConnecting, startListening, stopListening } = useDeepgram({
+  const { isListening, isConnecting, audioLevel, startListening, stopListening } = useDeepgram({
     onTranscript: handleTranscript,
     useProxy: isPro,
     githubId: user?.id?.toString()
@@ -468,6 +468,7 @@ Respond with ONLY the commit message, no quotes, no explanation. Use conventiona
             isListening={isListening}
             isConnecting={isConnecting}
             isProcessing={isProcessing}
+            audioLevel={audioLevel}
             mode={mode}
             transcript={transcript}
             pendingEdit={pendingEdit}

@@ -10,6 +10,7 @@ interface VoiceControlPanelProps {
   isListening: boolean
   isConnecting: boolean
   isProcessing: boolean
+  audioLevel: number
   mode: 'agent' | 'transcribe'
   transcript: string
   pendingEdit: PendingEdit | null
@@ -25,6 +26,7 @@ export function VoiceControlPanel({
   isListening,
   isConnecting,
   isProcessing,
+  audioLevel,
   mode,
   transcript,
   pendingEdit,
@@ -77,31 +79,68 @@ export function VoiceControlPanel({
 
       {/* Mic Button */}
       <div className="px-4 py-6 flex flex-col items-center">
-        <button
-          onClick={onToggleMic}
-          disabled={isConnecting}
-          className={`
-            flex items-center justify-center w-20 h-20 rounded-full transition-all
-            ${isListening 
-              ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 animate-pulse' 
-              : mode === 'agent' 
-                ? 'bg-purple-500 hover:bg-purple-600 active:bg-purple-700'
-                : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'}
-            ${isConnecting ? 'opacity-50' : ''}
-            shadow-lg active:scale-95
-          `}
-        >
-          {isConnecting ? (
-            <Loader2 size={32} className="text-white animate-spin" />
-          ) : isListening ? (
-            <MicOff size={32} className="text-white" />
-          ) : (
-            <Mic size={32} className="text-white" />
+        <div className="relative">
+          {/* Audio level rings - only show when listening */}
+          {isListening && (
+            <>
+              <div 
+                className="absolute inset-0 rounded-full bg-red-500/30 transition-transform duration-75"
+                style={{ 
+                  transform: `scale(${1 + audioLevel * 0.5})`,
+                  opacity: audioLevel * 0.8
+                }}
+              />
+              <div 
+                className="absolute inset-0 rounded-full bg-red-500/20 transition-transform duration-100"
+                style={{ 
+                  transform: `scale(${1 + audioLevel * 0.8})`,
+                  opacity: audioLevel * 0.5
+                }}
+              />
+              <div 
+                className="absolute inset-0 rounded-full bg-red-500/10 transition-transform duration-150"
+                style={{ 
+                  transform: `scale(${1 + audioLevel * 1.2})`,
+                  opacity: audioLevel * 0.3
+                }}
+              />
+            </>
           )}
-        </button>
+          <button
+            onClick={onToggleMic}
+            disabled={isConnecting}
+            className={`
+              relative z-10 flex items-center justify-center w-20 h-20 rounded-full transition-all
+              ${isListening 
+                ? 'bg-red-500 hover:bg-red-600 active:bg-red-700' 
+                : mode === 'agent' 
+                  ? 'bg-purple-500 hover:bg-purple-600 active:bg-purple-700'
+                  : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'}
+              ${isConnecting ? 'opacity-50' : ''}
+              shadow-lg active:scale-95
+            `}
+          >
+            {isConnecting ? (
+              <Loader2 size={32} className="text-white animate-spin" />
+            ) : isListening ? (
+              <MicOff size={32} className="text-white" />
+            ) : (
+              <Mic size={32} className="text-white" />
+            )}
+          </button>
+        </div>
         <span className="mt-3 text-xs text-slate-500">
-          {isConnecting ? 'Connecting...' : isListening ? 'Tap to stop' : 'Tap to speak'}
+          {isConnecting ? 'Connecting...' : isListening ? 'Listening...' : 'Tap to speak'}
         </span>
+        {/* Audio level indicator bar */}
+        {isListening && (
+          <div className="mt-2 w-16 h-1 bg-slate-700 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-red-500 transition-all duration-75 rounded-full"
+              style={{ width: `${audioLevel * 100}%` }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Status / Transcript */}

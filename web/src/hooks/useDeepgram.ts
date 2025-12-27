@@ -10,10 +10,13 @@ interface UseDeepgramOptions {
 export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDeepgramOptions) {
   const [isListening, setIsListening] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
+  const [audioLevel, setAudioLevel] = useState(0)
   
   const socketRef = useRef<WebSocket | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
 
   const getApiKey = async (): Promise<string | null> => {
     // If using proxy (Pro subscriber), fetch key from server
@@ -87,6 +90,25 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
         setIsConnecting(false)
         setIsListening(true)
 
+        // Set up audio level monitoring
+        const audioContext = new AudioContext()
+        const analyser = audioContext.createAnalyser()
+        const source = audioContext.createMediaStreamSource(stream)
+        source.connect(analyser)
+        analyser.fftSize = 256
+        analyserRef.current = analyser
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount)
+        const updateLevel = () => {
+          if (analyserRef.current) {
+            analyserRef.current.getByteFrequencyData(dataArray)
+            const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length
+            setAudioLevel(Math.min(average / 128, 1)) // Normalize to 0-1
+            animationFrameRef.current = requestAnimationFrame(updateLevel)
+          }
+        }
+        updateLevel()
+
         const mediaRecorder = new MediaRecorder(stream, {
           mimeType: 'audio/webm;codecs=opus'
         })
@@ -129,6 +151,14 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
   }, [apiKey, onTranscript, useProxy, githubId])
 
   const stopListening = useCallback(() => {
+    // Stop audio level monitoring
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = null
+    }
+    analyserRef.current = null
+    setAudioLevel(0)
+
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop()
       mediaRecorderRef.current = null
@@ -150,6 +180,7 @@ export function useDeepgram({ onTranscript, apiKey, useProxy, githubId }: UseDee
   return {
     isListening,
     isConnecting,
+    audioLevel,
     startListening,
     stopListening
   }
