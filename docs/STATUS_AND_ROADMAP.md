@@ -26,13 +26,16 @@
 |----------|--------|
 | **Core App** | ✅ Complete — Live at gitconnect.pro |
 | **GitHub Integration** | ✅ Complete — App installed, auth working |
-| **Subscription System** | ✅ Code complete and configured |
+| **Subscription System** | ⚠️ Code complete, **needs Netlify env vars** (see Step 7 below) |
 | **Stripe Billing** | ✅ Live — Identity verified, payments working |
+| **Stripe Emails** | ✅ Enabled — Invoice emails configured |
+| **Legal Pages** | ✅ Privacy Policy & Terms of Use created |
 | **Usage Throttling** | 📄 Documented — see [USAGE_THROTTLING.md](./USAGE_THROTTLING.md) |
 | **Troubleshooting** | 📄 See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) |
 | **Web App Playbook** | 📄 See [WEB_APP_PLAYBOOK.md](./WEB_APP_PLAYBOOK.md) |
-| **Legal Pages** | ✅ Privacy Policy & Terms of Use created |
 | **GitHub Docs** | 📄 See [GITHUB_INTEGRATION.md](./GITHUB_INTEGRATION.md) |
+
+### ⚠️ NEXT ACTION: See [Step 7](#step-7-add-missing-netlify-environment-variables-%EF%B8%8F-blocking) — Add missing Netlify env vars
 
 ---
 
@@ -167,45 +170,68 @@ Verify the complete checkout experience.
 - Checkout flow works end-to-end
 - User successfully subscribed (payment processed)
 
-**Known Issues to Fix**:
-- ⚠️ After checkout, UI still shows "Upgrade to Pro" instead of "Pro" badge
-- ⚠️ No invoice email received (check Stripe email settings)
-- ⚠️ User was able to subscribe twice (need to check for existing subscription)
+---
+
+## 🚨 IMMEDIATE ACTION REQUIRED
+
+### Step 7: Add Missing Netlify Environment Variables ⚠️ BLOCKING
+
+**Problem**: The Stripe webhook cannot update Supabase because server-side env vars are missing.  
+**Impact**: After payment, users don't see "Pro" badge and mic still asks for API key.
+
+**DO THIS NOW:**
+
+1. Go to **Netlify → Site settings → Environment variables**
+2. Add these TWO variables:
+
+| Variable | Value | Secret? |
+|----------|-------|---------|
+| `SUPABASE_URL` | Same URL as `VITE_SUPABASE_URL` (your Supabase project URL) | No |
+| `SUPABASE_SERVICE_KEY` | Supabase → Settings → API → **service_role** secret key | 🔒 YES |
+
+3. **Redeploy the site** after adding these variables
 
 ---
 
-### Step 7: Fix Post-Checkout Issues 🔧 IN PROGRESS
+### Step 8: Manually Fix Your User Record (One-Time) ⚠️ DO THIS
 
-#### 7a. Pro Badge Not Showing After Payment
-**Root Cause**: Race condition — webhook hasn't updated Supabase by the time page loads.
-**Fix Applied**: Added polling mechanism to retry fetching subscription status for 15 seconds after checkout success.
+Since the webhook failed during your initial payment, manually update your subscription status:
 
-#### 7b. Invoice Emails
-**Action Required**: Configure Stripe to send invoice emails:
-1. Go to Stripe Dashboard → **Settings** (gear icon, top right)
-2. Click **"Customer emails"** in the left sidebar under Business settings
-3. Toggle ON: "Successful payments", "Refunds", "Invoice finalized"
-4. Or use this direct link: https://dashboard.stripe.com/settings/emails
+1. Go to **Supabase Dashboard** → **Table Editor** → **users**
+2. Find your row (search by your GitHub username)
+3. Click to edit and set: `subscription_status` = `pro`
+4. Save the row
 
-#### 7c. Prevent Double Subscriptions ✅ FIXED
-**Status**: Implemented in `stripe.ts` — checkout now checks `subscription_status` before creating session and returns error if already subscribed.
+After this, refresh gitconnect.pro — you should see "Pro" badge and mic will use managed API keys.
 
 ---
 
-### Step 8: Account & Billing Page 📋 TODO
+## ✅ Recently Fixed
+
+| Issue | Status |
+|-------|--------|
+| Race condition after checkout | ✅ Fixed — added 15-second polling for status |
+| Double subscription bug | ✅ Fixed — checkout now blocks if already Pro |
+| Stripe invoice emails | ✅ Enabled in Stripe Dashboard |
+| Webhook error logging | ✅ Added detailed logging to diagnose issues |
+| Privacy Policy page | ✅ Created at `/privacy.html` |
+| Terms of Use page | ✅ Created at `/terms.html` |
+
+---
+
+## 📋 Future TODO
+
+### Step 9: Account & Billing Page
 
 Create an account management section with:
-- [ ] Current subscription status
+- [ ] Current subscription status display
 - [ ] Billing history / invoices
 - [ ] "Manage Subscription" button (Stripe Portal)
 - [ ] Usage statistics
 - [ ] Cancel subscription option
 
----
+### Step 10: Add Legal Page Links
 
-### Step 9: Add Legal Page Links 📋 TODO
-
-Add footer or settings links to:
 - [x] Privacy Policy (`/privacy.html`) — Created
 - [x] Terms of Use (`/terms.html`) — Created
 - [ ] Add links in app footer or settings menu
